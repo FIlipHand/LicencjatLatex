@@ -45,34 +45,47 @@
 \includepdf{stronatytulowasvg}
 % najpierw uzupełnij w 'stronatytulowa.odt' openoffice i wyeksportuj do 'stronatytulowa.pdf'
 
-\newpage{}
 
 \thispagestyle{empty}
-
-\newpage{}
-
-
 
 \tableofcontents{}
 
 \chapter*{Wstęp} % z gwiazdką, więc bez numerka...
 \addcontentsline{toc}{chapter}{Wstęp} % ...ale w spisie treści ma być
-
-\chapter{Rozdział o czymś tam}
-
-\section{Sekcja A}
+\textbf{Wariacyjne Autoenkodery} stają się coraz bardziej popularnymi modelami uczenia maszynowego. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga. Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki, odszumianiu obrazków, sygnałów oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania go przy pomocy metod gradientowych.
+\chapter{Tradycyjny a wariacyjny autoenkoder} 
+\section{Autoencoder}
+\subsection{Informacje ogólne}
+Autoencoder składa się z dwóch części: enkodera , który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście. Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. W innym przypadku sieć po prostu przekopiowałaby wejście. Często to zwężenie nazywa się mianem \textit{bottle neck}. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy wejściem a wyjściem. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy. \\
+Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać, że model próbuje nauczyć się funkcji: \\ 
+\begin{center}
+	Enkoder $A : \mathbb{R}^m \rightarrow \mathbb{R}^n$\\
+	Dekoder $B: \mathbb{R}^n \rightarrow \mathbb{R}^m$
+\end{center}
+Funkcją straty naszego modelu, którą będziemy chcieli zminimalizować, będzie błąd rekonstrukcji danych wejściowych i do tego celu użyjemy błędu średniokwadratowego. 
+\begin{center}
+	$\mathcal{L}(x, x') = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-x'_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-B(A(x_i)))^2$
+\end{center}
+\subsection{Zastosowanie}
+Dwoma głównymi zastosowaniami tradycyjnych autoenkoderów są:
 \begin{itemize}
-\item Siema siema co jest 5 \cite{cokolwiek}
-\item siema co jest grane
-\item koniec serio 
+	\item Odszumianie
+	\item Redukcja wymiarów 
 \end{itemize}
+\subsection{Problemy z generacją nowych danych}
+Dobrym pytaniem jest czy przy pomocy kodu jesteśmy generować nowe dane bardzo podobne do tych co model otrzymał na wejściu. Aby model mógł generować nowe dane muszą zostać spełnione dwa warunki:
+\begin{itemize}
+	\item Nasza przestrzeń kodu (tzw. zmiennych ukrytych) musi być ciągła co znaczy że dwa punkty znajdujące się obok siebie będą dawać podobne dane jak zostaną odkodowane
+	\item Przestrzeń musi być kompletna co znaczy, ze punkty wzięte z dystrybucji muszą dawaj wyniki mające sens
+\end{itemize}
+Korzystając z tradycyjnych autoenkoderów nie mamy zagwarantowanego, że oba te kryteria zostaną spełnione.\\
 
-\lipsum[1-5]
-\section{Sekcja B}
-\subsection{podsekcja}
-\label{podsekcjaaaaa121}
-
-\lipsum[1-5]
+Zwykłe autoenkodery po prostu nie nadają się do generacji danych ponieważ nigdy nie zostały do tego stworzone. Ich głównym celem jest jak najlepsze odzwierciedlenie danych ze zmiennych ukrytych. 
+\section{Wariacyjny autoenkoder}
+\subsection{Różnice}
+Wariacyjny autoenkoder ma inne podejście do generowania zmiennych ukrytych. Zamiast generować jedną zmienną dla każdego wymiaru, generuje dwie liczby, $\sigma$ oraz $\mu$, które traktujemy jako odchylenie standardowe oraz średnią rozkładu normalnego.
+Dla przykładu jeśli uznamy ze chcemy dane reprezentować jako siedmio-wymiarowy wektor, nasz enkoder wygeneruje dwa wektory siedmio-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z siedmiu rozkładu normalnego.\\
+\lipsum[1-2]
 \chapter{Rozdział o czymś innym}
 Siema \cite{doersch2021tutorial}
 \section{Sekcja C}
@@ -92,7 +105,7 @@ Siema \cite{doersch2021tutorial}
 \addcontentsline{toc}{chapter}{Spis rysunków}
 
 \bibliographystyle{ieeetr}
-\bibliography{./cytowania/cokolwiek.bib}
+\bibliography{./cytowania/cytowania.bib}
 
 
 %\begin{thebibliography}{99}
