@@ -84,19 +84,43 @@ Zwykłe autoenkodery po prostu nie nadają się do generacji danych ponieważ ni
 \section{Wariacyjny autoenkoder}
 \subsection{Różnice}
 Wariacyjny autoenkoder ma inne podejście do generowania zmiennych ukrytych. Zamiast generować jedną zmienną dla każdego wymiaru, generuje dwie liczby, $\sigma$ oraz $\mu$, które traktujemy jako odchylenie standardowe oraz średnią rozkładu normalnego.
-Dla przykładu jeśli uznamy ze chcemy dane reprezentować jako siedmio-wymiarowy wektor, nasz enkoder wygeneruje dwa wektory siedmio-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z siedmiu rozkładu normalnego.\\
-\lipsum[1-2]
-\chapter{Rozdział o czymś innym}
-Siema \cite{doersch2021tutorial}
-\section{Sekcja C}
-\lipsum[1-5]
-\ref{podsekcjaaaaa121}
-\section{Sekcja D}
-\lipsum[1-5]
+Dla przykładu jeśli uznamy ze chcemy dane reprezentować jako siedmio-wymiarowy wektor, nasz enkoder wygeneruje dwa wektory siedmio-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z siedmiu rozkładu normalnego. Kolejną istotną zmiana jest funkcja straty, która oprócz błędu rekonstrukcji obrazu składa się z dywergencji Kullbacka-Leiblera.\\
+\chapter{Wariacyjny autoenkoder}
+\section{Teoria za modelem VAE}
+\subsection{Motywacja statystyczna}
+Powiedzmy ze istnieje zmienna ukryta $z$, która generuje obserwację $x$. Mamy tylko informację o $x$ i chcemy się dowiedzieć jakiej jest $z$. Aby to zrobić powinniśmy policzyć $p(z|x)$. Z twierdzenia Bayesa wiemy że:\\
+\begin{center}
+	$p(z|x)=\dfrac{p(x|z)p(z)}{p(x)}$
+\end{center}
+Aby obliczyć rozkład marginalny $p(x)$ musimy policzyć:
+\begin{center}
+	$p(x) = \displaystyle\int_{z}^{}p(x,z)dz$
+\end{center}
+Obliczenie tej całki jest bardzo trudne ponieważ $z$ jest często wielowymiarowe i przestrzeń przeszukiwań jest zwyczajnie kombinatorycznie za duża aby korzystać z takich metod jak próbkowanie Monte Carlo łańcuchami Markowa. \\
 
+\section{Wnioskowanie wariacyjne}
+Rozwiązaniem tego problemu jest próba policzenia rozkładu $q(z|x)$, które będzie jak najlepiej odzwierciedlać $p(z|x)$ i będzie miał rozkład, który będziemy mogli policzyć. 
+\subsection{Dywergencji Kullbacka-Leiblera}
+Jest to miara określająca rozbieżność między dwoma rozkładami prawdopodobieństwa. Nie można określić jej mianem metryki ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq  D_{KL}(Q\|P)$).\\ Naszym celem będzie zminimalizowanie jej.
+\begin{center}
+	$q^\ast(z|x)=\operatorname*{argmin}_{q(z|x)\in Q}(D_{KL}(q(z|x)\|p(z|x)))$
+	\\gdzie $Q$ to rodzina prostych dystrybucji, na przykład rozkładu Gaussa 
+\end{center}
+Policzmy:
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))=\mathbb{E}_{z\sim q(z|x)}\log\dfrac{p(z|x)}{q(z|x)} = 
+	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
+\end{center}
+	 Natrafiamy na kolejny problem ponieważ nie możemy $p(z|x)$ jednak jesteśmy w stanie to przepisać jako:\\
+\begin{center}
+	$p(z|x)=\dfrac{p(z,x)}{p(x)}$
+\end{center}
+Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO.
+\newpage
+W naszym przypadku będziemy chcieli aby $q$ było rozkładem normalnym co znaczy że
 \chapter{Kolejny rozdział o niczym}
 \section{Pozdrowienia do więzienia}
-\lipsum[1]
+\lipsum[1]\cite{doersch2021tutorial}
 
 \listoftables{} % jeśli są tabele
 \addcontentsline{toc}{chapter}{Spis tabel}
