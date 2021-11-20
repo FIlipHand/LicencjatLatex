@@ -115,11 +115,29 @@ Policzmy:
 \begin{center}
 	$p(z|x)=\dfrac{p(z,x)}{p(x)}$
 \end{center}
-Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO.
+Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO (dolna granica dowodów).
 \newpage
-W naszym przypadku będziemy chcieli aby $q$ było rozkładem normalnym co znaczy że
-\chapter{Kolejny rozdział o niczym}
-\section{Pozdrowienia do więzienia}
+Wybieramy sobie że nasza funkcja $q(z|x)$ będzie $\mathcal{N}(0, \textit{\textbf{I}})$.
+Dywergencja dla dwóch rozkładów normalnych wygląda w następujący sposób. 
+\begin{center}
+	$\dfrac{1}{2}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
+\end{center}
+Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
+\begin{center}
+	$\dfrac{1}{2}\displaystyle\sum_{m}^{i=1}\sigma_i^2+\mu_i^2-\log(\sigma_i)-1$
+\end{center} 
+Jest to pierwsza część naszej funkcji straty. 
+\newpage
+\section{Sztuczka reparametryzacyjna}
+Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
+\begin{center}
+	$\epsilon\sim\mathcal{N}(0,1)$\\
+	$z=\mu+\sigma\bigodot\epsilon$
+\end{center} 
+Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gradient przez $z$, które jest teraz deterministycznie. W poprzednim przypadku było ono losowe wybierane z dystrybucji. 
+
+\chapter{Implementacja}
+\section{Tensorflow oraz Keras}
 \lipsum[1]\cite{doersch2021tutorial}
 
 \listoftables{} % jeśli są tabele
@@ -130,13 +148,5 @@ W naszym przypadku będziemy chcieli aby $q$ było rozkładem normalnym co znacz
 
 \bibliographystyle{ieeetr}
 \bibliography{./cytowania/cytowania.bib}
-
-
-%\begin{thebibliography}{99}
-%\addcontentsline{toc}{chapter}{Bibliografia}
-% \bibitem aaaaaaaa
-% \bibitem bbbbbbbb 
-%\end{thebibliography}
-
 
 \end{document}
