@@ -15,9 +15,10 @@
 \usepackage{amssymb} % to też do dodatkowych symboli, też przydatne
 \usepackage{pdfpages} % żeby wstawić stronę tytułową
 % jesli potrzeb, można oczywiście wstawić inne pakiety i swoje definicje...
- \usepackage{graphicx}
- \graphicspath{{./pictures}}
-
+\usepackage{graphicx}
+\graphicspath{{./pictures}}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
 % definicje nagłówków i stopek
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
@@ -57,7 +58,7 @@
 \chapter{Tradycyjny autoenkoder} 
 \section{Informacje wstępne}
 Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście.\cite{bank2021autoencoders} Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy, który powie nam, jak wynik różni się od wejścia. \\
-Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać, że model próbuje nauczyć się funkcji:
+Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać, że model próbuje nauczyć się funkcji:\\
 \begin{center}
 	Enkoder $E : \mathbb{R}^m \rightarrow \mathbb{R}^n$\\
 	Dekoder $D: \mathbb{R}^n \rightarrow \mathbb{R}^m$ \\
@@ -69,6 +70,13 @@ Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytyc
 \begin{figure}[h]
 	\centering\includegraphics[width=14.5cm]{pictures/autoencoder.png}
 	\caption{Obrazek jest zakodowany do skompresowanej reprezentacji, a następnie zostaje odkodowany przez dekoder.}
+\end{figure}
+\newpage
+\subsection{Zbiór danych MNIST}
+Zbiór danych MNIST (\textit{Modified National Institute of Standards and Technology})\cite{mnist} jest zbiorem wielu odręcznie pisanych cyfr. Jest szeroko używany w zastosowaniach uczenia maszynowego. W jego skład wchodzi 60,000 obrazów przeznaczonych do treningu modeli oraz 10,000 do testów. Obrazki są czarno-białe i mają wymiary 28x28 pikseli.
+\begin{figure}[h]
+	\centering\includegraphics[width=5cm]{pictures/mnist.png}
+	\caption{Przykładowe obrazy ze zbioru danych.}
 \end{figure}
 \section{Zastosowania}
 \subsection{Redukcja wymiarów}
@@ -140,12 +148,47 @@ Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
 Jest to pierwsza część naszej funkcji straty. 
 \newpage
 \section{Sztuczka reparametryzacyjna}
-Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
+Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu po którym będziemy schodzić. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
 \begin{center}
 	$\epsilon\sim\mathcal{N}(0,1)$\\
 	$z=\mu+\sigma\bigodot\epsilon$
 \end{center} 
-Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gradient przez $z$, które jest teraz deterministycznie. W poprzednim przypadku było ono losowe wybierane z dystrybucji. 
+Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gradient przez $z$, które jest teraz deterministycznie. W poprzednim przypadku było ono losowe wybierane z dystrybucji. \\
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		\node (dc) at (-4,0) {Dekoder};
+		\node[shape=circle, draw=black] (z) at (-4,-2) {$z$};
+		\node (q) at (-2.8,-2) {$\sim q(z|x)$};
+		\node[shape=diamond, draw=black] (sigma) at (-4,-4) {$\sigma$};
+		\node[shape=diamond, draw=black] (mu) at (-6, -4) {$\mu$};
+		\node (en) at (-5, -6) {Enkoder};
+		
+		\path[->] (z) edge node[left] {} (dc);
+		\path[->] (mu) edge node[left] {} (z);
+		\path[->] (sigma) edge node[left] {} (z);
+		\draw[-to](-5, -5.5) -- (-5, -4.5);
+		
+		\node (dc1) at (4,0) {Dekoder};
+		\node[shape=diamond, draw=black] (z1) at (4,-2) {$z$};
+		\node (q1) at (6,-2) {$z=\mu+\sigma\bigodot\epsilon$};
+		\node[shape=diamond, draw=black] (sigma1) at (4,-4) {$\sigma$};
+		\node[shape=diamond, draw=black] (mu1) at (2, -4) {$\mu$};
+		\node (en1) at (3, -6) {Enkoder};
+		\node[shape=circle, draw=black] (epsilon) at (6, -4) {$\epsilon$};
+		\node (n) at (7.5, -4) {$\sim\mathcal{N}(0,1)$};
+		
+		\path[->] (z1) edge node[left] {} (dc1);
+		\path[->] (mu1) edge node[left] {} (z1);
+		\path[->] (sigma1) edge node[left] {} (z1);
+		\path[->] (epsilon) edge node[left] {} (z1);
+		\draw[-to](3, -5.5) -- (3, -4.5);
+		
+		\draw[-to](-1.5, -2) -- (2, -2) node[midway, above]{Reparametryzacja};
+		
+
+	\end{tikzpicture}
+\end{figure}
 
 \chapter{Implementacja}
 \section{Tensorflow oraz Keras}
