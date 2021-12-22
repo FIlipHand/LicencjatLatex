@@ -17,8 +17,40 @@
 % jesli potrzeb, można oczywiście wstawić inne pakiety i swoje definicje...
 \usepackage{graphicx}
 \graphicspath{{./pictures}}
+
+
 \usepackage{tikz}
-\usetikzlibrary{shapes}
+\usepackage{listofitems}
+\usepackage{etoolbox}
+\usetikzlibrary{arrows.meta} % for arrow size
+\usepackage[outline]{contour} % glow around text
+\contourlength{1.4pt}
+\tikzstyle{mynode}=[thick,draw=blue,fill=blue!20]
+\usetikzlibrary{shapes, positioning}
+\tikzset{>=latex} % for LaTeX arrow head
+\usepackage{xcolor}
+\colorlet{myred}{red!80!black}
+\colorlet{myblue}{blue!80!black}
+\colorlet{mygreen}{green!60!black}
+\colorlet{myorange}{orange!70!red!60!black}
+\colorlet{mydarkred}{red!30!black}
+\colorlet{mydarkblue}{blue!40!black}
+\colorlet{mydarkgreen}{green!30!black}
+\tikzstyle{node}=[thick,circle,draw=myblue,minimum size=22,inner sep=0.5,outer sep=0.6]
+\tikzstyle{node in}=[node,green!20!black,draw=mygreen!30!black,fill=mygreen!25]
+\tikzstyle{node hidden}=[node,blue!20!black,draw=myblue!30!black,fill=myblue!20]
+\tikzstyle{node convol}=[node,orange!20!black,draw=myorange!30!black,fill=myorange!20]
+\tikzstyle{node out}=[node,red!20!black,draw=myred!30!black,fill=myred!20]
+\tikzstyle{connect}=[thick,mydarkblue] %,line cap=round
+\tikzstyle{connect arrow}=[-{Latex[length=4,width=3.5]},thick,mydarkblue,shorten <=0.5,shorten >=1]
+\tikzset{ % node styles, numbered for easy mapping with \nstyle
+	node 1/.style={node in},
+	node 2/.style={node hidden},
+	node 3/.style={node out},
+}
+\def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)} % map layer number onto 1, 2, or 3
+
+
 % definicje nagłówków i stopek
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
@@ -45,39 +77,41 @@
 \thispagestyle{empty}
 
 \includepdf{stronatytulowasvg}
-% najpierw uzupełnij w 'stronatytulowa.odt' openoffice i wyeksportuj do 'stronatytulowa.pdf'
 
-
-\thispagestyle{empty}
+%\thispagestyle{empty}
 
 \tableofcontents{}
 
 \chapter*{Wstęp} % z gwiazdką, więc bez numerka...
 \addcontentsline{toc}{chapter}{Wstęp} % ...ale w spisie treści ma być
-\textbf{Wariacyjne Autoenkodery} stają się coraz bardziej popularnymi modelami uczenia maszynowego. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga. Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki, odszumianiu obrazków, sygnałów oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania go przy pomocy metod gradientowych.
+\textbf{Autoenkoder} jest jednym z rodzajów sieci neuronowych, której zadaniem jest nauczenie się zakodowania nie oznaczonych danych. Kod jest kolejnie wykorzystywany do ponownego wygenerowania wejścia sieci. Autoenkoder uczy się reprezentacji zbioru danych do zmiennych ukrytych przez ignorowanie nie istotnych danych.
+Wariacyjne autoenkodery są popularnymi modelami generacyjnymi. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga w roku 2014\cite{kingma2014autoencoding}. Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania ich przy pomocy metod gradientowych.
 \chapter{Tradycyjny autoenkoder} 
 \section{Informacje wstępne}
-Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście.\cite{bank2021autoencoders} Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy, który powie nam, jak wynik różni się od wejścia. \\
-Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać, że model próbuje nauczyć się funkcji:\\
+Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście\cite{bank2021autoencoders}. Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać:\\
 \begin{center}
 	Enkoder $E : \mathbb{R}^m \rightarrow \mathbb{R}^n$\\
 	Dekoder $D: \mathbb{R}^n \rightarrow \mathbb{R}^m$ \\
 	gdzie $n < m$\\
-	$\mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2$
 \end{center}
-Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji.
+Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy lub \textit{binary crossentropy}, która powie nam, jak wynik różni się od wejścia. 
+ \begin{center}
+ 		$\mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2$
+ \end{center}
 
 \begin{figure}[h]
 	\centering\includegraphics[width=14.5cm]{pictures/autoencoder.png}
-	\caption{Obrazek jest zakodowany do skompresowanej reprezentacji, a następnie zostaje odkodowany przez dekoder.}
+	\caption{Schemat budowy autoenkodera.}
 \end{figure}
 \newpage
 \subsection{Zbiór danych MNIST}
-Zbiór danych MNIST (\textit{Modified National Institute of Standards and Technology})\cite{mnist} jest zbiorem wielu odręcznie pisanych cyfr. Jest szeroko używany w zastosowaniach uczenia maszynowego. W jego skład wchodzi 60,000 obrazów przeznaczonych do treningu modeli oraz 10,000 do testów. Obrazki są czarno-białe i mają wymiary 28x28 pikseli.
+Zbiór danych MNIST (\textit{Modified National Institute of Standards and Technology})\cite{mnist} jest zbiorem wielu odręcznie pisanych cyfr. Znajduje szerokie zastosowanie w nauce i prezentacjach możliwości modeli uczenia maszynowego. W jego skład wchodzi 60,000 obrazów przeznaczonych do treningu modeli oraz 10,000 do testów. Obrazy są czarno-białe i mają wymiary 28 na 28 pikseli.
 \begin{figure}[h]
 	\centering\includegraphics[width=5cm]{pictures/mnist.png}
 	\caption{Przykładowe obrazy ze zbioru danych.}
 \end{figure}
+\section{Budowa}
+Jak już zostało napisane, autenkoder składa się z dwóch sieci neuronowych. Enkoder jak i dekoder są w pełni połączonymi sieciami neuronowymi. \\
 \section{Zastosowania}
 \subsection{Redukcja wymiarów}
 \lipsum[1]
@@ -158,8 +192,8 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 	\centering
 	\begin{tikzpicture}
 		\node (dc) at (-4,0) {Dekoder};
-		\node[shape=circle, draw=black] (z) at (-4,-2) {$z$};
-		\node (q) at (-2.8,-2) {$\sim q(z|x)$};
+		\node[shape=circle, draw=black, scale=1.2] (z) at (-4,-2) {$z$};
+		\node (q) at (-2.6,-2) {$\sim q(z|x)$};
 		\node[shape=diamond, draw=black] (sigma) at (-4,-4) {$\sigma$};
 		\node[shape=diamond, draw=black] (mu) at (-6, -4) {$\mu$};
 		\node (en) at (-5, -6) {Enkoder};
@@ -175,7 +209,7 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 		\node[shape=diamond, draw=black] (sigma1) at (4,-4) {$\sigma$};
 		\node[shape=diamond, draw=black] (mu1) at (2, -4) {$\mu$};
 		\node (en1) at (3, -6) {Enkoder};
-		\node[shape=circle, draw=black] (epsilon) at (6, -4) {$\epsilon$};
+		\node[shape=circle, draw=black, scale=1.2] (epsilon) at (6, -4) {$\epsilon$};
 		\node (n) at (7.5, -4) {$\sim\mathcal{N}(0,1)$};
 		
 		\path[->] (z1) edge node[left] {} (dc1);
@@ -186,8 +220,12 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 		
 		\draw[-to](-1.5, -2) -- (2, -2) node[midway, above]{Reparametryzacja};
 		
-
+		\node[shape=diamond, draw=black, scale=1.2] (legend-diamond) at (-6, -7) {};
+		\node[shape=circle, draw=black, scale=1.4] (legend-circle) at (-6, -8) {}; 
+		\node (determin) at (-3, -7) {- węzeł deterministyczny};
+		\node (randnode) at (-3.94, -8) {- węzeł losowy};
 	\end{tikzpicture}
+	\caption{Graficzna reprezentacja reparametryzacji.}
 \end{figure}
 
 \chapter{Implementacja}
