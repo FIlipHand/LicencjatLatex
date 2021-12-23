@@ -18,6 +18,8 @@
 \usepackage{graphicx}
 \graphicspath{{./pictures}}
 
+\usepackage{pgfplots}
+
 \usepackage{xstring}
 \usepackage{tikz}
 \usepackage{listofitems}
@@ -256,53 +258,47 @@ Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
 \end{center} 
 Jest to pierwsza część naszej funkcji straty. 
 \newpage
-\section{Sztuczka reparametryzacyjna}
-Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu po którym będziemy schodzić. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
-\begin{center}
-	$\epsilon\sim\mathcal{N}(0,1)$\\
-	$z=\mu+\sigma\bigodot\epsilon$
-\end{center} 
-Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gradient przez $z$, które jest teraz deterministycznie. W poprzednim przypadku było ono losowe wybierane z dystrybucji. \\
+\section{cos xd}
 \begin{figure}[h!]
 	\centering
-	\begin{tikzpicture}
-		\node (dc) at (-4,0) {Dekoder};
-		\node[shape=circle, draw=black, scale=1.2] (z) at (-4,-2) {$z$};
-		\node (q) at (-2.6,-2) {$\sim q(z|x)$};
-		\node[shape=diamond, draw=black] (sigma) at (-4,-4) {$\sigma$};
-		\node[shape=diamond, draw=black] (mu) at (-6, -4) {$\mu$};
-		\node (en) at (-5, -6) {Enkoder};
-		
-		\path[->] (z) edge node[left] {} (dc);
-		\path[->] (mu) edge node[left] {} (z);
-		\path[->] (sigma) edge node[left] {} (z);
-		\draw[-to](-5, -5.5) -- (-5, -4.5);
-		
-		\node (dc1) at (4,0) {Dekoder};
-		\node[shape=diamond, draw=black] (z1) at (4,-2) {$z$};
-		\node (q1) at (6,-2) {$z=\mu+\sigma\bigodot\epsilon$};
-		\node[shape=diamond, draw=black] (sigma1) at (4,-4) {$\sigma$};
-		\node[shape=diamond, draw=black] (mu1) at (2, -4) {$\mu$};
-		\node (en1) at (3, -6) {Enkoder};
-		\node[shape=circle, draw=black, scale=1.2] (epsilon) at (6, -4) {$\epsilon$};
-		\node (n) at (7.5, -4) {$\sim\mathcal{N}(0,1)$};
-		
-		\path[->] (z1) edge node[left] {} (dc1);
-		\path[->] (mu1) edge node[left] {} (z1);
-		\path[->] (sigma1) edge node[left] {} (z1);
-		\path[->] (epsilon) edge node[left] {} (z1);
-		\draw[-to](3, -5.5) -- (3, -4.5);
-		
-		\draw[-to](-1.5, -2) -- (2, -2) node[midway, above]{Reparametryzacja};
-		
-		\node[shape=diamond, draw=black, scale=1.2] (legend-diamond) at (-6, -7) {};
-		\node[shape=circle, draw=black, scale=1.4] (legend-circle) at (-6, -8) {}; 
-		\node (determin) at (-3, -7) {- węzeł deterministyczny};
-		\node (randnode) at (-3.94, -8) {- węzeł losowy};
+	\pgfplotsset{
+		colormap={whitered}{color(0cm)=(white); color(1cm)=(orange!75!red)}
+	}
+	\begin{tikzpicture}[
+		declare function={mu1=1;},
+		declare function={mu2=2;},
+		declare function={sigma1=0.5;},
+		declare function={sigma2=0.6;},
+		declare function={normal(\m,\s)=1/(2*\s*sqrt(pi))*exp(-(x-\m)^2/(2*\s^2));},
+		declare function={bivar(\ma,\sa,\mb,\sb)=
+			1/(2*pi*\sa*\sb) * exp(-((x-\ma)^2/\sa^2 + (y-\mb)^2/\sb^2))/2;}]
+		\begin{axis}[
+			colormap name=whitered,
+			width=15cm,
+			view={45}{55},
+			enlargelimits=false,
+			grid=major,
+			domain=-1:4,
+			y domain=-1:4,
+			samples=26,
+			xlabel=$x_1$,
+			ylabel=$x_2$,
+			zlabel={$P$},
+			]
+			\addplot3 [surf] {bivar(mu1,sigma1,mu2,sigma2)};
+			\addplot3 [domain=-1:4,samples=31, samples y=0, thick, smooth] (x,4,{normal(mu1,sigma1)});
+			\addplot3 [domain=-1:4,samples=31, samples y=0, thick, smooth] (-1,x,{normal(mu2,sigma2)});
+			
+			\draw [black!50] (axis cs:-1,0,0) -- (axis cs:4,0,0);
+			\draw [black!50] (axis cs:0,-1,0) -- (axis cs:0,4,0);
+			
+			\node at (axis cs:-1,1,0.18) [pin=165:$P(x_1)$] {};
+			\node at (axis cs:1.5,4,0.32) [pin=-15:$P(x_2)$] {};
+		\end{axis}
 	\end{tikzpicture}
-	\caption{Graficzna reprezentacja reparametryzacji.}
 \end{figure}
 \newpage
+
 \section{Budowa tmp}
 \begin{figure}[h!]
 	\centering
@@ -353,7 +349,53 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 		
 	\end{tikzpicture}
 \end{figure}
-
+\newpage
+\section{Sztuczka reparametryzacyjna}
+Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu po którym będziemy schodzić. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
+\begin{center}
+	$\epsilon\sim\mathcal{N}(0,1)$\\
+	$z=\mu+\sigma\bigodot\epsilon$
+\end{center} 
+Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gradient przez $z$, które jest teraz deterministycznie. W poprzednim przypadku było ono losowe wybierane z dystrybucji. \\
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		\node (dc) at (-4,0) {Dekoder};
+		\node[shape=circle, draw=black, scale=1.2] (z) at (-4,-2) {$z$};
+		\node (q) at (-2.6,-2) {$\sim q(z|x)$};
+		\node[shape=diamond, draw=black] (sigma) at (-4,-4) {$\sigma$};
+		\node[shape=diamond, draw=black] (mu) at (-6, -4) {$\mu$};
+		\node (en) at (-5, -6) {Enkoder};
+		
+		\path[->] (z) edge node[left] {} (dc);
+		\path[->] (mu) edge node[left] {} (z);
+		\path[->] (sigma) edge node[left] {} (z);
+		\draw[-to](-5, -5.5) -- (-5, -4.5);
+		
+		\node (dc1) at (4,0) {Dekoder};
+		\node[shape=diamond, draw=black] (z1) at (4,-2) {$z$};
+		\node (q1) at (6,-2) {$z=\mu+\sigma\bigodot\epsilon$};
+		\node[shape=diamond, draw=black] (sigma1) at (4,-4) {$\sigma$};
+		\node[shape=diamond, draw=black] (mu1) at (2, -4) {$\mu$};
+		\node (en1) at (3, -6) {Enkoder};
+		\node[shape=circle, draw=black, scale=1.2] (epsilon) at (6, -4) {$\epsilon$};
+		\node (n) at (7.5, -4) {$\sim\mathcal{N}(0,1)$};
+		
+		\path[->] (z1) edge node[left] {} (dc1);
+		\path[->] (mu1) edge node[left] {} (z1);
+		\path[->] (sigma1) edge node[left] {} (z1);
+		\path[->] (epsilon) edge node[left] {} (z1);
+		\draw[-to](3, -5.5) -- (3, -4.5);
+		
+		\draw[-to](-1.5, -2) -- (2, -2) node[midway, above]{Reparametryzacja};
+		
+		\node[shape=diamond, draw=black, scale=1.2] (legend-diamond) at (-6, -7) {};
+		\node[shape=circle, draw=black, scale=1.4] (legend-circle) at (-6, -8) {}; 
+		\node (determin) at (-3, -7) {- węzeł deterministyczny};
+		\node (randnode) at (-3.94, -8) {- węzeł losowy};
+	\end{tikzpicture}
+	\caption{Graficzna reprezentacja reparametryzacji.}
+\end{figure}
 \chapter{Implementacja}
 \section{Tensorflow oraz Keras}
 \lipsum[1]\cite{doersch2021tutorial}
