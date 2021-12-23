@@ -52,13 +52,35 @@
 \def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)} % map layer number onto 1, 2, or 3
 
 % VAE
-\newcommand\drawNodes[2]{
+\newcommand\drawEncoder[2]{
 	% #1 (str): namespace
 	% #2 (list[list[str]]): list of labels to print in the node of each neuron
 	\foreach \neurons [count=\lyrIdx] in #2 {
-		\StrCount{\neurons}{,}[\lyrLength] % use xstring package to save each layer size into \lyrLength macro
-		\foreach \n [count=\nIdx] in \neurons
-		\node[neuron] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {\n};
+		\ifnum \lyrIdx = 1
+			\StrCount{\neurons}{,}[\lyrLength]
+			\foreach \n [count=\nIdx] in \neurons
+			\node[myin] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {$x_\nIdx$};
+		\else 
+			\StrCount{\neurons}{,}[\lyrLength] 
+			\foreach \n [count=\nIdx] in \neurons
+			\node[hidden] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {\n};
+		\fi
+	}
+}
+
+\newcommand\drawDecoder[2]{
+	% #1 (str): namespace
+	% #2 (list[list[str]]): list of labels to print in the node of each neuron
+	\foreach \neurons [count=\lyrIdx] in #2 {
+		\ifnum \lyrIdx = 3
+			\StrCount{\neurons}{,}[\lyrLength]
+			\foreach \n [count=\nIdx] in \neurons
+			\node[myout] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {$\hat{x}_\nIdx$};
+		\else 
+			\StrCount{\neurons}{,}[\lyrLength] 
+			\foreach \n [count=\nIdx] in \neurons
+			\node[hidden] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {\n};
+		\fi
 	}
 }
 \newcommand\denselyConnectNodes[2]{
@@ -141,7 +163,6 @@ Jak już zostało napisane, autoenkoder składa się z dwóch sieci neuronowych.
 \centering
 \begin{tikzpicture}[x=2.1cm,y=1.2cm]
 	\large
-	\message{^^JNeural network without arrows}
 	\readlist\Nnod{6,5,4,3,4,5,6} % array of number of nodes per layer
 	
 	% TRAPEZIA
@@ -152,7 +173,6 @@ Jak już zostało napisane, autoenkoder składa się z dwóch sieci neuronowych.
 	\draw[myblue!40,fill=myblue,fill opacity=0.02,rounded corners=2]
 		(6.4,-2.7) --++ (0,5.4) --++ (-2.8,-1.2) --++ (0,-3) -- cycle;
 	
-	\message{^^J  Layer}
 	\foreachitem \N \in \Nnod{ % loop over layers
 		\def\lay{\Ncnt} % alias of index of current layer
 		\pgfmathsetmacro\prev{int(\Ncnt-1)} % number of previous layer
@@ -160,7 +180,15 @@ Jak już zostało napisane, autoenkoder składa się z dwóch sieci neuronowych.
 		\foreach \i [evaluate={\y=\N/2-\i+0.5; \x=\lay; \n=\nstyle;}] in {1,...,\N}{ % loop over nodes
 			
 			% NODES
-			\node[node \n,outer sep=0.6] (N\lay-\i) at (\x,\y) {};
+			\ifnum \Ncnt = 1
+				\node[node \n,outer sep=0.6] (N\lay-\i) at (\x,\y) {$x_\i$};
+			\else
+				\ifnum \Ncnt = 7
+					\node[node \n,outer sep=0.6] (N\lay-\i) at (\x,\y) {$\hat{x}_\i$};
+				\else
+					\node[node \n,outer sep=0.6] (N\lay-\i) at (\x,\y) {};
+				\fi
+			\fi
 			
 			% CONNECTIONS
 			\ifnumcomp{\lay}{>}{1}{ % connect to previous layer
@@ -305,30 +333,33 @@ Jest to pierwsza część naszej funkcji straty.
 	\begin{tikzpicture}[
 		shorten >=1pt, shorten <=1pt,
 		neuron/.style={circle, draw, minimum size=4ex, thick},
+		hidden/.style={node,blue!20!black,draw=myblue!30!black,fill=myblue!20},
+		myin/.style={node,green!20!black,draw=mygreen!30!black,fill=mygreen!25},
+		myout/.style={node,red!20!black,draw=myred!30!black,fill=myred!20},
 		legend/.style={font=\large\bfseries},
 		]
 		
 		% encoder
-		\drawNodes{encoder}{{{,,,,}, {,,,}, {,,}}}
+		\drawEncoder{encoder}{{{,,,,}, {,,,}, {,,}}}
 		\denselyConnectNodes{encoder}{{5, 4, 3}}
 		
 		% decoder
 		\begin{scope}[xshift=11cm]
-			\drawNodes{decoder}{{{,,}, {,,,}, {,,,,}}}
+			\drawDecoder{decoder}{{{,,}, {,,,}, {,,,,}}}
 			\denselyConnectNodes{decoder}{{3, 4, 5}}
 		\end{scope}
 		
 		% mu, sigma, sample nodes
 		\foreach \idx in {1,...,2} {
-			\coordinate[neuron, right=2 of encoder-3-2, yshift=\idx cm,, fill=yellow, fill opacity=0.2] (mu-\idx);
-			\coordinate[neuron, right=2 of encoder-3-2, yshift=-\idx cm, fill=blue, fill opacity=0.1] (sigma-\idx);
-			\coordinate[neuron, right=4 of encoder-3-2, yshift=\idx cm-1.5cm, fill=green, fill opacity=0.1] (sample-\idx);
+			\coordinate[neuron, right=2 of encoder-3-2, yshift=\idx cm, fill=yellow, fill opacity=0.2] (mu-\idx);
+			\coordinate[neuron, right=2 of encoder-3-2, yshift=-\idx cm, fill=red, fill opacity=0.1] (sigma-\idx);
+			\coordinate[neuron, right=4 of encoder-3-2, yshift=\idx cm-1.5cm, fill=orange, fill opacity=0.1] (sample-\idx);
 		}
 		
 		% mu, sigma, sample boxes
-		\node [label=$\mu$, fit=(mu-1) (mu-2), draw, fill=yellow, opacity=0.2] (mu) {};
-		\node [label=$\sigma$, fit=(sigma-1) (sigma-2), draw, fill=blue, opacity=0.2] (sigma) {};
-		\node [label=$z$, fit=(sample-1) (sample-2), draw, fill=green, opacity=0.2] (sample) {};
+		\node [label=$\mu$, fit=(mu-1) (mu-2), draw, fill=yellow, opacity=0.1] (mu) {};
+		\node [label=$\sigma$, fit=(sigma-1) (sigma-2), draw, fill=red, opacity=0.1] (sigma) {};
+		\node [label=$z$, fit=(sample-1) (sample-2), draw, fill=orange, opacity=0.1] (sample) {};
 		
 		% mu, sigma, sample connections
 		\draw[connect] (mu.east) edge (sample.west) (sigma.east) -- (sample.west);
@@ -338,14 +369,9 @@ Jest to pierwsza część naszej funkcji straty.
 			\draw[connect] (encoder-3-\a) -- (sigma-\b);
 			\draw[connect] (sample-\b) -- (decoder-1-\a);
 		}
-		
-		% input + output labels
-		\foreach \idx in {1,...,5} {
-			\node[left=0 of encoder-1-\idx] {$x_\idx$};
-			\node[right=0 of decoder-3-\idx] {$\hat x_\idx$};
-		}
-		\node[above=0.1 of encoder-1-1] {input};
-		\node[above=0.1 of decoder-3-1] {output};
+	
+		\node[above=0.1 of encoder-1-1] {wejście};
+		\node[above=0.1 of decoder-3-1] {wyjście};
 		
 	\end{tikzpicture}
 \end{figure}
