@@ -18,11 +18,11 @@
 \usepackage{graphicx}
 \graphicspath{{./pictures}}
 
-
+\usepackage{xstring}
 \usepackage{tikz}
 \usepackage{listofitems}
 \usepackage{etoolbox}
-\usetikzlibrary{arrows.meta} % for arrow size
+\usetikzlibrary{arrows.meta, fit, positioning} % for arrow size
 \usepackage[outline]{contour} % glow around text
 \contourlength{1.4pt}
 \tikzstyle{mynode}=[thick,draw=blue,fill=blue!20]
@@ -39,7 +39,6 @@
 \tikzstyle{node}=[thick,circle,draw=myblue,minimum size=22,inner sep=0.5,outer sep=0.6]
 \tikzstyle{node in}=[node,green!20!black,draw=mygreen!30!black,fill=mygreen!25]
 \tikzstyle{node hidden}=[node,blue!20!black,draw=myblue!30!black,fill=myblue!20]
-\tikzstyle{node convol}=[node,orange!20!black,draw=myorange!30!black,fill=myorange!20]
 \tikzstyle{node out}=[node,red!20!black,draw=myred!30!black,fill=myred!20]
 \tikzstyle{connect}=[thick,mydarkblue] %,line cap=round
 \tikzstyle{connect arrow}=[-{Latex[length=4,width=3.5]},thick,mydarkblue,shorten <=0.5,shorten >=1]
@@ -49,6 +48,29 @@
 	node 3/.style={node out},
 }
 \def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)} % map layer number onto 1, 2, or 3
+
+% VAE
+\newcommand\drawNodes[2]{
+	% #1 (str): namespace
+	% #2 (list[list[str]]): list of labels to print in the node of each neuron
+	\foreach \neurons [count=\lyrIdx] in #2 {
+		\StrCount{\neurons}{,}[\lyrLength] % use xstring package to save each layer size into \lyrLength macro
+		\foreach \n [count=\nIdx] in \neurons
+		\node[neuron] (#1-\lyrIdx-\nIdx) at (2*\lyrIdx, \lyrLength/2-1.4*\nIdx) {\n};
+	}
+}
+\newcommand\denselyConnectNodes[2]{
+	% #1 (str): namespace
+	% #2 (list[int]): number of nodes in each layer
+	\foreach \n [count=\lyrIdx, remember=\lyrIdx as \previdx, remember=\n as \prevn] in #2 {
+		\foreach \y in {1,...,\n} {
+			\ifnum \lyrIdx > 1
+			\foreach \x in {1,...,\prevn}
+			\draw[connect] (#1-\previdx-\x) -- (#1-\lyrIdx-\y);
+			\fi
+		}
+	}
+}
 
 
 % definicje nagłówków i stopek
@@ -94,7 +116,7 @@ Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwó
 	Dekoder $D: \mathbb{R}^n \rightarrow \mathbb{R}^m$ \\
 	gdzie $n < m$\\
 \end{center}
-Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy lub \textit{binary crossentropy}, która powie nam, jak wynik różni się od wejścia. 
+Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy lub binarna entropia krzyżowa, która powie nam, jak wynik różni się od wejścia. 
  \begin{center}
  		$\mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2$
  \end{center}
@@ -110,8 +132,61 @@ Zbiór danych MNIST (\textit{Modified National Institute of Standards and Techno
 	\centering\includegraphics[width=5cm]{pictures/mnist.png}
 	\caption{Przykładowe obrazy ze zbioru danych.}
 \end{figure}
+\newpage
 \section{Budowa}
-Jak już zostało napisane, autenkoder składa się z dwóch sieci neuronowych. Enkoder jak i dekoder są w pełni połączonymi sieciami neuronowymi. \\
+Jak już zostało napisane, autoenkoder składa się z dwóch sieci neuronowych. Enkoder jak i dekoder są w pełni połączonymi sieciami neuronowymi. \\
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[x=2.1cm,y=1.2cm]
+	\large
+	\message{^^JNeural network without arrows}
+	\readlist\Nnod{6,5,4,3,4,5,6} % array of number of nodes per layer
+	
+	% TRAPEZIA
+	\node[above,align=center,myorange!60!black] at (3,2.4) {Enkoder};
+	\node[above,align=center,myblue!60!black] at (5,2.4) {Dekoder};
+  	\draw[myorange!40,fill=myorange,fill opacity=0.02,rounded corners=2]
+		(1.6,-2.7) --++ (0,5.4) --++ (2.8,-1.2) --++ (0,-3) -- cycle;
+	\draw[myblue!40,fill=myblue,fill opacity=0.02,rounded corners=2]
+		(6.4,-2.7) --++ (0,5.4) --++ (-2.8,-1.2) --++ (0,-3) -- cycle;
+	
+	\message{^^J  Layer}
+	\foreachitem \N \in \Nnod{ % loop over layers
+		\def\lay{\Ncnt} % alias of index of current layer
+		\pgfmathsetmacro\prev{int(\Ncnt-1)} % number of previous layer
+		\message{\lay,}
+		\foreach \i [evaluate={\y=\N/2-\i+0.5; \x=\lay; \n=\nstyle;}] in {1,...,\N}{ % loop over nodes
+			
+			% NODES
+			\node[node \n,outer sep=0.6] (N\lay-\i) at (\x,\y) {};
+			
+			% CONNECTIONS
+			\ifnumcomp{\lay}{>}{1}{ % connect to previous layer
+				\foreach \j in {1,...,\Nnod[\prev]}{ % loop over nodes in previous layer
+					\draw[connect,white,line width=1.2] (N\prev-\j) -- (N\lay-\i);
+					\draw[connect] (N\prev-\j) -- (N\lay-\i);
+					%\draw[connect] (N\prev-\j.0) -- (N\lay-\i.180); % connect to left
+				}
+			}{} % else: nothing to connect first layer
+			
+		}
+	}
+	
+	% LABELS
+	\node[above=0.5,align=center,mygreen!60!black] at (N1-1.90) {wejście};
+	\node[above=0.5,align=center,myred!60!black] at (N\Nnodlen-1.90) {wyjście};
+	
+\end{tikzpicture}
+\caption{Wizualizacja sieci tworzącej autoenkoder.}
+\end{figure}\\
+Obrazek przedstawia prosty autoenkoder kompresujący wejście siedmiowymiarowe do kodu o długości trzy. Enkoder jak i dekoder mają po dwie warstwy ukryte. Odbicie lustrzane architektury nie jest konieczne aby model działał poprawnie, jednak zazwyczaj taką architekturę się używa. \\
+Hpierparametramy modelu, które możemy ustalić przed jego treningiem to:
+\begin{itemize}
+	\item Ilość warstw ukrytych - jeśli wiemy, że nasze dane są skomplikowane, dodatkowe warstwy ukryte będą miały pozytywny wpływ na otrzymywane rezultaty, ponieważ większa ilość warstw sprawia, że model jest w stanie nauczyć się bardziej skomplikowanych funkcji.\cite{telgarsky2016benefits, eldan2016power}
+	\item Ilość neuronów w poszczególnych warstwach - autoenkoder powinien posiadać w każdej warstwie mniej neuronów niż w poprzedniej. W ten sposób model nie będzie "oszukiwał" i zostaje zmuszony do reprezentacji jak najlepszej kompresji.
+	\item Funkcja straty - najlepszymi funkcjami straty do treningu autoenkodera jest błąd średniokwadratowy lub binarna entropia krzyżowa w przypadku, kiedy dane są w przedziale od 0 do 1.
+	\item Rozmiar kodu - jest najistotniejszy parametr dla nas i dla modelu. Dłuższa długość kodu oznacza zachowanie więcej istotnych elementów, a co za tym idzie lepsze odwzorowanie przez dekoder. Z drugiej strony używając, dłuższego wektora zmiennych ukrytych dostajemy gorszą kompresje danych. Długość kodu musimy dobrać w zależności od problemu, który chcemy rozwiązać używając modelu.
+\end{itemize}
 \section{Zastosowania}
 \subsection{Redukcja wymiarów}
 \lipsum[1]
@@ -226,6 +301,57 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 		\node (randnode) at (-3.94, -8) {- węzeł losowy};
 	\end{tikzpicture}
 	\caption{Graficzna reprezentacja reparametryzacji.}
+\end{figure}
+\newpage
+\section{Budowa tmp}
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[
+		shorten >=1pt, shorten <=1pt,
+		neuron/.style={circle, draw, minimum size=4ex, thick},
+		legend/.style={font=\large\bfseries},
+		]
+		
+		% encoder
+		\drawNodes{encoder}{{{,,,,}, {,,,}, {,,}}}
+		\denselyConnectNodes{encoder}{{5, 4, 3}}
+		
+		% decoder
+		\begin{scope}[xshift=11cm]
+			\drawNodes{decoder}{{{,,}, {,,,}, {,,,,}}}
+			\denselyConnectNodes{decoder}{{3, 4, 5}}
+		\end{scope}
+		
+		% mu, sigma, sample nodes
+		\foreach \idx in {1,...,2} {
+			\coordinate[neuron, right=2 of encoder-3-2, yshift=\idx cm,, fill=yellow, fill opacity=0.2] (mu-\idx);
+			\coordinate[neuron, right=2 of encoder-3-2, yshift=-\idx cm, fill=blue, fill opacity=0.1] (sigma-\idx);
+			\coordinate[neuron, right=4 of encoder-3-2, yshift=\idx cm-1.5cm, fill=green, fill opacity=0.1] (sample-\idx);
+		}
+		
+		% mu, sigma, sample boxes
+		\node [label=$\mu$, fit=(mu-1) (mu-2), draw, fill=yellow, opacity=0.2] (mu) {};
+		\node [label=$\sigma$, fit=(sigma-1) (sigma-2), draw, fill=blue, opacity=0.2] (sigma) {};
+		\node [label=$z$, fit=(sample-1) (sample-2), draw, fill=green, opacity=0.2] (sample) {};
+		
+		% mu, sigma, sample connections
+		\draw[connect] (mu.east) edge (sample.west) (sigma.east) -- (sample.west);
+		\foreach \a in {1,2,3}
+		\foreach \b in {1,2} {
+			\draw[connect] (encoder-3-\a) -- (mu-\b);
+			\draw[connect] (encoder-3-\a) -- (sigma-\b);
+			\draw[connect] (sample-\b) -- (decoder-1-\a);
+		}
+		
+		% input + output labels
+		\foreach \idx in {1,...,5} {
+			\node[left=0 of encoder-1-\idx] {$x_\idx$};
+			\node[right=0 of decoder-3-\idx] {$\hat x_\idx$};
+		}
+		\node[above=0.1 of encoder-1-1] {input};
+		\node[above=0.1 of decoder-3-1] {output};
+		
+	\end{tikzpicture}
 \end{figure}
 
 \chapter{Implementacja}
