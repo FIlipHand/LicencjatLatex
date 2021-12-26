@@ -131,10 +131,10 @@
 \chapter*{Wstęp} % z gwiazdką, więc bez numerka...
 \addcontentsline{toc}{chapter}{Wstęp} % ...ale w spisie treści ma być
 \textbf{Autoenkoder} jest jednym z rodzajów sieci neuronowych, której zadaniem jest nauczenie się zakodowania nie oznaczonych danych. Kod jest kolejnie wykorzystywany do ponownego wygenerowania wejścia sieci. Autoenkoder uczy się reprezentacji zbioru danych do zmiennych ukrytych przez ignorowanie nie istotnych danych.
-Wariacyjne autoenkodery są popularnymi modelami generacyjnymi. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga w roku 2014\cite{kingma2014autoencoding}. Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania ich przy pomocy metod gradientowych.
+Wariacyjne autoenkodery są popularnymi modelami generacyjnymi. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga w roku 2014.\cite{kingma2014autoencoding} Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania ich przy pomocy metod gradientowych.
 \chapter{Tradycyjny autoenkoder} 
 \section{Informacje wstępne}
-Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście\cite{bank2021autoencoders}. Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać:\\
+Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście.\cite{bank2021autoencoders} Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać:\\
 \begin{center}
 	Enkoder $E : \mathbb{R}^m \rightarrow \mathbb{R}^n$\\
 	Dekoder $D: \mathbb{R}^n \rightarrow \mathbb{R}^m$ \\
@@ -151,7 +151,7 @@ Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytyc
 \end{figure}
 \newpage
 \subsection{Zbiór danych MNIST}
-Zbiór danych MNIST (\textit{Modified National Institute of Standards and Technology})\cite{mnist} jest zbiorem wielu odręcznie pisanych cyfr. Znajduje szerokie zastosowanie w nauce i prezentacjach możliwości modeli uczenia maszynowego. W jego skład wchodzi 60,000 obrazów przeznaczonych do treningu modeli oraz 10,000 do testów. Obrazy są czarno-białe i mają wymiary 28 na 28 pikseli.
+Zbiór danych MNIST (\textit{Modified National Institute of Standards and Technology}) jest zbiorem wielu odręcznie pisanych cyfr.\cite{mnist} Znajduje szerokie zastosowanie w nauce i prezentacjach możliwości modeli uczenia maszynowego. W jego skład wchodzi 60,000 obrazów przeznaczonych do treningu modeli oraz 10,000 do testów. Obrazy są czarno-białe i mają wymiary 28 na 28 pikseli.
 \begin{figure}[h]
 	\centering\includegraphics[width=5cm]{pictures/mnist.png}
 	\caption{Przykładowe obrazy ze zbioru danych.}
@@ -221,10 +221,11 @@ Hpierparametramy modelu, które możemy ustalić przed jego treningiem to:
 \subsection{Redukcja wymiarów}
 \lipsum[1]
 \subsection{Odszumianie obrazów}
-\lipsum[2]
+Model autoenkodera przeznaczony do odszumiania danych, często dostaje swoją nazwę i jest określany mianem DAE \textit{(Denoising autoencoder)}. DAE tak jak zwykły autoenkoder próbuje w jak najlepszy sposób skompresować dane, zachowując jak najwięcej istotnych informacji. Najważniejszą różnicą między tymi modelami są dane, które dostają na wejście i wyjście. Obrazy przyjmowane na warstwę wejściową są zaszumione natomiast te z warstwy wyjściowej pochodzą prosto ze zbioru danych. Rysunek \ref{fig:noisedae} przedstawia porównanie obrazu z szumem, który powstał przez dodanie do zbioru danych szumu powstałego z losowego próbkowania z normalnej dystrybucji $\mathcal{N}(0,1)$, obrazu który udało się odzyskać z kodu wygenerowanego przez enkoder oraz prawdziwego obrazu z warstwy wyjściowej modelu.
 \begin{figure}[h]
 	\centering\includegraphics[width=14.5cm]{pictures/noised1.png}
-	\caption{Grafika przedstawia porównanie obrazu z szumem, prawdziwego oraz wynikowego odkodowanego z czterech wartości.}
+	\caption{Obraz z szumem, odzyskany oraz prawdziwy.}
+	\label{fig:noisedae}
 \end{figure}
 \subsection{Uzupełnianie obrazów}
 \lipsum[1-2]
@@ -243,10 +244,89 @@ Aby model mógł generować nowe dane muszą zostać spełnione dwa warunki:
 Tradycyjna architektura nie zapewnia nam a priori czy przestrzeń zmiennych ukrytych będzie spełniała te warunki. Zadaniem modelu jest jak najlepsze odzwierciedlenie skompresowanych danych, a nie dbanie o to, czy rozkład zmiennych kodu spełnia nasze warunki. Może się tak zdarzyć, że siec nauczy się akurat takiej dystrybucji, która by nam pasowała, ale jest to bardzo mało prawdopodobne. Jeśli chcemy zbudować model generacyjny musimy mieć zagwarantowane, że za każdym razem dostaniemy rozkład spełniający nasze warunki. 
 \chapter{Wariacyjny autoenkoder}
 \section{Informacje ogóle}
-Wariacyjny autoenkoder ma inne podejście do generowania zmiennych ukrytych. Zamiast generować jedną zmienną dla każdego wymiaru, generuje dwie liczby, $\sigma$ oraz $\mu$, które traktujemy jako odchylenie standardowe oraz średnią rozkładu normalnego.
-Dla przykładu jeśli uznamy ze chcemy dane reprezentować jako siedmio-wymiarowy wektor, nasz enkoder wygeneruje dwa wektory siedmio-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z siedmiu rozkładu normalnego. Kolejną istotną zmiana jest funkcja straty, która oprócz błędu rekonstrukcji obrazu składa się z dywergencji Kullbacka-Leiblera.\\
+Wariacyjny autoenkoder rozwiązuje problemy generacyjny tradycyjnego modelu. VAE ma na celu skompresowanie danych do określonego wielowymiarowego rozkładu ukrytego, a następnie z próbki z tej dystrybucji, próbuje jak najlepiej zrekonstruować wejście. Najczęściej rozkładami wybieranymi do tego celu są rozkłady normalne. Rozkład normalny jest opisywany przy pomocy dwóch wartości: średnia, która oznaczana jest znakiem $\mu$ oraz odchylenie standardowe oznaczane $\sigma$. Jeśli chcemy dane skompresować do kodu o długości $n$, enkoder wygeneruje dwa wektory $n$-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z $n$ rozkładów normalnych.\\
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		\node (true) at (-7, 0) {\includegraphics[width=2.5cm]{vaeorg1.png}};
+		\draw[thick] (-4.8, 1) -- (-4.8, -1) node[pos=0.5] (enkoderin){} -- (-3.7, -0.6) -- (-3.7, 0.6) node[pos=0.5] (enkoderout){} -- cycle;
+		\draw[-latex, thick] (true.east) -- (enkoderin.west);
+		\node[scale=0.7](stdv) at (-2.5, 0) {\(\begin{bmatrix}
+				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38
+		\end{bmatrix}\)};
+		\node[scale=0.7] (meanv) at (-1.5, 0) {\(\begin{bmatrix}
+				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38
+			\end{bmatrix}\)};
+		\draw[-latex, thick](enkoderout.east) -- (stdv.west);
+		\node[scale=0.7] (nv) at (0.5, 0) {\(\begin{bmatrix}
+				 \mathcal{N}(0.34,0.92)\\ \mathcal{N}(0.34,0.92) \\ \vdots \\ \mathcal{N}(0.34,0.92) \\ \mathcal{N}(0.34,0.92)
+			\end{bmatrix}\)};
+		\draw[-latex, thick] (meanv.east) -- (nv.west);
+		\node[scale=0.7] (sample) at (2.5, 0) {\(\begin{bmatrix}
+				0.74 \\ 0.12 \\ \vdots \\ 2.01 \\ 0.13
+			\end{bmatrix}\)};
+		\draw[-latex, thick] (nv.east) -- (sample.west);
+				\draw[thick] (3.7, 0.6) -- (3.7, -0.6) node[pos=0.5] (dekoderin){} -- (4.8, -1) -- (4.8, 1) node[pos=0.5] (dekoderout){} -- cycle;
+		\node (recon) at (7, 0) {\includegraphics[width=2.5cm]{vaerec1.png}};
+		\draw[-latex, thick](sample.east) -- (dekoderin.west);
+		\draw[-latex, thick](dekoderout.east) -- (recon.west);
+		% Labels
+		\node at (-7, -1.5) {wejście};
+		\node at (7, -1.5) {wyjście};
+		\node at (-2.5, -1.5) {$\sigma$};
+		\node at (-1.5, -1.5) {$\mu$};
+		\node at (2.5, -1.5) {$z$};
+		\node at (0.5, -1.5) {dystrybucje};
+		\node at (-4.25, -1.5) {enkoder};
+		\node at (4.25, -1.5) {dekoder};
+
+	\end{tikzpicture}
+	\caption{Schemat budowy wariacyjnego autoenkodera.}
+\end{figure}
+\\
+ Ograniczając enkoder do nauki wyłącznie tej dystrybucji z której próbkujemy losowo zmienne ukryte z których rekonstruujemy obrazy zapewniamy sobie gładką oraz ciągłą dystrybucje zmiennych losowych. Oczekujemy, że dowolna próbka z przestrzeni zostanie celnie odwzorowana przez dekoder. Dlatego wartości, które sa blisko będą generowały podobne wyjście.\\
+
+\begin{figure}[h!]
+	\centering
+	\pgfplotsset{
+		colormap={whitered}{color(0cm)=(white); color(1cm)=(orange!75!red)}
+	}
+	\begin{tikzpicture}[
+		declare function={mu1=2;},
+		declare function={mu2=3;},
+		declare function={sigma1=0.5;},
+		declare function={sigma2=0.6;},
+		declare function={normal(\m,\s)=1/(2*\s*sqrt(pi))*exp(-(x-\m)^2/(2*\s^2));},
+		declare function={bivar(\ma,\sa,\mb,\sb)=
+			1/(2*pi*\sa*\sb) * exp(-((x-\ma)^2/\sa^2 + (y-\mb)^2/\sb^2))/2;}]
+		\begin{axis}[
+			colormap name=whitered,
+			width=15cm,
+			view={45}{55},
+			enlargelimits=false,
+			grid=major,
+			domain=0:5,
+			y domain=0:5,
+			samples=31,
+			xlabel=$x_2$,
+			ylabel=$x_1$,
+			zlabel={$P$},
+			]
+			\addplot3 [surf] {bivar(mu1,sigma1,mu2,sigma2)};
+			\addplot3 [domain=0:5,samples=31, samples y=0, thick, smooth] (x,5,{normal(mu1,sigma1)});
+			\addplot3 [domain=0:5,samples=31, samples y=0, thick, smooth] (0,x,{normal(mu2,sigma2)});
+			
+			\draw [black!50] (axis cs:-1,0,0) -- (axis cs:4,0,0);
+			\draw [black!50] (axis cs:0,-1,0) -- (axis cs:0,4,0);
+			
+			\node at (axis cs:0,2,0.12) [pin=165:$P(x_1)$] {};
+			\node at (axis cs:4,4,0.32) [pin=-15:$P(x_2)$] {};
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Wielowymiarowy rozkład zmiennej.}
+\end{figure}
 \section{Motywacja statystyczna}
-Powiedzmy ze istnieje zmienna ukryta $z$, która generuje obserwację $x$. Mamy tylko informację o $x$ i chcemy się dowiedzieć jakiej jest $z$. Aby to zrobić powinniśmy policzyć $p(z|x)$. Z twierdzenia Bayesa wiemy że:\\
+Powiedzmy ze istnieje zmienna ukryta $z$, która generuje obserwację $x$. Posiadamy tylko informację o $x$ i chcemy się dowiedzieć z jakiego $z$ dana obserwacja powstała. Aby tego dokonać powinniśmy policzyć $p(z|x)$. Z twierdzenia Bayesa wiemy że:\\
 \begin{center}
 	$p(z|x)=\dfrac{p(x|z)p(z)}{p(x)}$
 \end{center}
@@ -254,7 +334,7 @@ Aby obliczyć rozkład marginalny $p(x)$ musimy policzyć:
 \begin{center}
 	$p(x) = \displaystyle\int_{z}^{}p(x,z)dz$
 \end{center}
-Obliczenie tej całki jest bardzo trudne ponieważ $z$ jest często wielowymiarowe i przestrzeń przeszukiwań jest zwyczajnie kombinatorycznie za duża aby korzystać z takich metod jak próbkowanie Monte Carlo łańcuchami Markowa. \\
+Obliczenie tej całki jest bardzo trudne ponieważ $z$ jest często wielowymiarowe i przestrzeń przeszukiwań jest kombinatorycznie zwyczajnie za duża aby korzystać z takich metod jak próbkowanie Monte Carlo łańcuchami Markowa. \\
 
 \section{Wnioskowanie wariacyjne}
 Rozwiązaniem tego problemu jest próba policzenia rozkładu $q(z|x)$, które będzie jak najlepiej odzwierciedlać $p(z|x)$ i będzie miał rozkład, który będziemy mogli policzyć. 
@@ -286,47 +366,6 @@ Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
 \end{center} 
 Jest to pierwsza część naszej funkcji straty. 
 \newpage
-\section{cos xd}
-\begin{figure}[h!]
-	\centering
-	\pgfplotsset{
-		colormap={whitered}{color(0cm)=(white); color(1cm)=(orange!75!red)}
-	}
-	\begin{tikzpicture}[
-		declare function={mu1=1;},
-		declare function={mu2=2;},
-		declare function={sigma1=0.5;},
-		declare function={sigma2=0.6;},
-		declare function={normal(\m,\s)=1/(2*\s*sqrt(pi))*exp(-(x-\m)^2/(2*\s^2));},
-		declare function={bivar(\ma,\sa,\mb,\sb)=
-			1/(2*pi*\sa*\sb) * exp(-((x-\ma)^2/\sa^2 + (y-\mb)^2/\sb^2))/2;}]
-		\begin{axis}[
-			colormap name=whitered,
-			width=15cm,
-			view={45}{55},
-			enlargelimits=false,
-			grid=major,
-			domain=-1:4,
-			y domain=-1:4,
-			samples=26,
-			xlabel=$x_1$,
-			ylabel=$x_2$,
-			zlabel={$P$},
-			]
-			\addplot3 [surf] {bivar(mu1,sigma1,mu2,sigma2)};
-			\addplot3 [domain=-1:4,samples=31, samples y=0, thick, smooth] (x,4,{normal(mu1,sigma1)});
-			\addplot3 [domain=-1:4,samples=31, samples y=0, thick, smooth] (-1,x,{normal(mu2,sigma2)});
-			
-			\draw [black!50] (axis cs:-1,0,0) -- (axis cs:4,0,0);
-			\draw [black!50] (axis cs:0,-1,0) -- (axis cs:0,4,0);
-			
-			\node at (axis cs:-1,1,0.18) [pin=165:$P(x_1)$] {};
-			\node at (axis cs:1.5,4,0.32) [pin=-15:$P(x_2)$] {};
-		\end{axis}
-	\end{tikzpicture}
-\end{figure}
-\newpage
-
 \section{Budowa tmp}
 \begin{figure}[h!]
 	\centering
@@ -357,9 +396,9 @@ Jest to pierwsza część naszej funkcji straty.
 		}
 		
 		% mu, sigma, sample boxes
-		\node [label=$\mu$, fit=(mu-1) (mu-2), draw, fill=yellow, opacity=0.1] (mu) {};
-		\node [label=$\sigma$, fit=(sigma-1) (sigma-2), draw, fill=red, opacity=0.1] (sigma) {};
-		\node [label=$z$, fit=(sample-1) (sample-2), draw, fill=orange, opacity=0.1] (sample) {};
+		\node [label=$\mu$, fit=(mu-1) (mu-2), draw, fill=yellow, opacity=0.1, rounded corners=2] (mu) {};
+		\node [label=$\sigma$, fit=(sigma-1) (sigma-2), draw, fill=red, opacity=0.1, rounded corners=2] (sigma) {};
+		\node [label=$z$, fit=(sample-1) (sample-2), draw, fill=orange, opacity=0.1, rounded corners=2] (sample) {};
 		
 		% mu, sigma, sample connections
 		\draw[connect] (mu.east) edge (sample.west) (sigma.east) -- (sample.west);
@@ -370,8 +409,8 @@ Jest to pierwsza część naszej funkcji straty.
 			\draw[connect] (sample-\b) -- (decoder-1-\a);
 		}
 	
-		\node[above=0.1 of encoder-1-1] {wejście};
-		\node[above=0.1 of decoder-3-1] {wyjście};
+		\node[above=0.1 of encoder-1-1,mygreen!60!black] {wejście};
+		\node[above=0.1 of decoder-3-1,myred!60!black] {wyjście};
 		
 	\end{tikzpicture}
 \end{figure}
