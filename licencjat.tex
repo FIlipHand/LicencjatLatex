@@ -208,30 +208,47 @@ Jak już zostało napisane, autoenkoder składa się z dwóch sieci neuronowych.
 	
 \end{tikzpicture}
 \caption{Wizualizacja sieci tworzącej autoenkoder.}
+\label{fig:aenetwork}
 \end{figure}\\
-Obrazek przedstawia prosty autoenkoder kompresujący wejście siedmiowymiarowe do kodu o długości trzy. Enkoder jak i dekoder mają po dwie warstwy ukryte. Odbicie lustrzane architektury nie jest konieczne aby model działał poprawnie, jednak zazwyczaj taką architekturę się używa. \\
-Hpierparametramy modelu, które możemy ustalić przed jego treningiem to:
+Obrazek \ref{fig:aenetwork} przedstawia prosty autoenkoder kompresujący wejście siedmiowymiarowe do kodu o długości trzy. Enkoder jak i dekoder mają po dwie warstwy ukryte. Odbicie lustrzane architektury nie jest konieczne aby model działał poprawnie, jednak zwyczajem jest używanie takiej architektury.\\
+Hiperparametramy modelu, które możemy ustalić przed jego treningiem to:
 \begin{itemize}
 	\item Ilość warstw ukrytych - jeśli wiemy, że nasze dane są skomplikowane, dodatkowe warstwy ukryte będą miały pozytywny wpływ na otrzymywane rezultaty, ponieważ większa ilość warstw sprawia, że model jest w stanie nauczyć się bardziej skomplikowanych funkcji.\cite{telgarsky2016benefits, eldan2016power}
 	\item Ilość neuronów w poszczególnych warstwach - autoenkoder powinien posiadać w każdej warstwie mniej neuronów niż w poprzedniej. W ten sposób model nie będzie "oszukiwał" i zostaje zmuszony do reprezentacji jak najlepszej kompresji.
 	\item Funkcja straty - najlepszymi funkcjami straty do treningu autoenkodera jest błąd średniokwadratowy lub binarna entropia krzyżowa w przypadku, kiedy dane są w przedziale od 0 do 1.
-	\item Rozmiar kodu - jest najistotniejszy parametr dla nas i dla modelu. Dłuższa długość kodu oznacza zachowanie więcej istotnych elementów, a co za tym idzie lepsze odwzorowanie przez dekoder. Z drugiej strony używając, dłuższego wektora zmiennych ukrytych dostajemy gorszą kompresje danych. Długość kodu musimy dobrać w zależności od problemu, który chcemy rozwiązać używając modelu.
+	\item Rozmiar kodu - jest najistotniejszy parametr dla nas i dla modelu. Dłuższa długość kodu oznacza zachowanie więcej istotnych elementów, a co za tym idzie lepsze odwzorowanie przez dekoder. Z drugiej strony używając, dłuższego wektora zmiennych ukrytych dostajemy gorszą kompresje danych. Długość kodu musimy dobrać w zależności od problemu, który chcemy rozwiązać używając model.
 \end{itemize}
 \section{Zastosowania}
 \subsection{Redukcja wymiarów}
 \lipsum[1]
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=12.5cm]{pictures/aelatentspace.png}
+	\caption{Przestrzeń dwuwymiarowej zmiennej ukrytej.}
+\end{figure}
 \subsection{Odszumianie obrazów}
-Model autoenkodera przeznaczony do odszumiania danych, często dostaje swoją nazwę i jest określany mianem DAE \textit{(Denoising autoencoder)}. DAE tak jak zwykły autoenkoder próbuje w jak najlepszy sposób skompresować dane, zachowując jak najwięcej istotnych informacji. Najważniejszą różnicą między tymi modelami są dane, które dostają na wejście i wyjście. Obrazy przyjmowane na warstwę wejściową są zaszumione natomiast te z warstwy wyjściowej pochodzą prosto ze zbioru danych. Rysunek \ref{fig:noisedae} przedstawia porównanie obrazu z szumem, który powstał przez dodanie do zbioru danych szumu powstałego z losowego próbkowania z normalnej dystrybucji $\mathcal{N}(0,1)$, obrazu który udało się odzyskać z kodu wygenerowanego przez enkoder oraz prawdziwego obrazu z warstwy wyjściowej modelu.
-\begin{figure}[h]
+Model autoenkodera przeznaczony do odszumiania danych, często dostaje swoją nazwę i jest określany mianem DAE \textit{(Denoising autoencoder)}. DAE, tak jak zwykły autoenkoder, próbuje w jak najlepszy sposób skompresować dane, zachowując jak najwięcej istotnych informacji. Najważniejszą różnicą między tymi modelami są dane, które dostają na wejście i wyjście. Obrazy przyjmowane na warstwę wejściową są zaszumione natomiast te z warstwy wyjściowej pochodzą prosto ze zbioru danych.
+Powodem dla którego autoenkodery tak dobrze nadają się do odszumiania jest ich umiejętność kompresji danych. Kompresja, której dokonują te modele jest stratna. W przypadku kiedy naszym głównym zadaniem jest jak najlepsze odtworzenie danych wejściowych jest to kłopot, jednak w tym przypadku możemy wykorzystać tą własność na naszą korzyść. Porównując wyjście modelu z danymi bez szumu, zapewniamy, że model nauczy się w jakimś stopniu odtwarzać je poprawnie. Zmuszamy w ten sposób model do ignorowania nieistotnych części naszych danych oraz zapamiętywanie tylko tych, na podstawie których będzie możliwe jak najlepsze odwzorowanie wejścia sieci.
+
+Rysunek \ref{fig:noisedae} pokazuje możliwości modelu na przykładzie zbioru danych MNIST. Do obrazów przeznaczonych do treningu został dodany szum. Zaszumiony obraz powstał przez dodanie do oryginalnego obrazu losowo wybranych wartości z rozkładu Gaussa $\mathcal{N}(0,1)$ przemożonych przez stałą, która w tym przypadku wynosi $0.4$. Następnie obrazy wejściowe zostały skompresowane do kodu o długości pięć, a następnie odkodowane przez dekoder. 
+\begin{figure}[h!]
 	\centering\includegraphics[width=14.5cm]{pictures/noised1.png}
 	\caption{Obraz z szumem, odzyskany oraz prawdziwy.}
 	\label{fig:noisedae}
 \end{figure}
+Wadą autoenkoderu przeznaczonego do odszumiania danych jest jego ścisłe powiązanie ze zbiorem danych, na których został wytrenowany. Model z parametrami wytrenowanymi na jednym zbiorze danych nie będzie się nadawał do innego zbioru, z którego danymi będziemy chcieli pracować. Jedynym rozwiązaniem tego problemu jest stworzenie nowego modelu przeznaczonego do użytku na nowych danych. 
 \subsection{Uzupełnianie obrazów}
-\lipsum[1-2]
+Uzupełnianie obrazów ma na celu wypełnienie brakującej lub zamaskowanej części obszaru. Człowiek bez problemu jest sobie poradzić z tym zadaniem jednak dla komputera nie jest ono oczywiste. Bierze się to z tego, że jest ogromna ilość możliwości wypełnienia nawet niewielkiej brakującej przestrzeni. 
+Można wyróżnić dwa główne podejścia wypełniania obrazów:
+\begin{itemize}
+	\item sieć posiada informację w którym miejscu obrazu jest luka
+	\item sieć musi sama się nauczyć, które miejsce obrazu musi wypełnić
+\end{itemize}
+Rysunek \ref{fig:lukaae} przedstawia drugie podejście. 
 \begin{figure}[h]
 	\centering\includegraphics[width=14.5cm]{pictures/completion1.png}
-	\caption{Grafika przedstawia porównanie obrazu wejściowego, prawdziwego oraz wynikowego odkodowanego z czterech wartości.}
+	\caption{Obraz z luką, odzyskany oraz prawdziwy.}
+	\label{fig:lukaae}
 \end{figure}
 
 \section{Problemy z generacją nowych danych}
