@@ -222,7 +222,7 @@ Hiperparametramy modelu, które możemy ustalić przed jego treningiem to:
 \end{itemize}
 \section{Zastosowania}
 \subsection{Redukcja wymiaru}
-Redukcja wymiaru jest procesem zmniejszenia liczby zmiennych przeznaczonych do analizy, a zarazem zachowanie w nich jak najwięcej istotnych informacji. Powody dla których chcemy zmniejszyć wymiarowość danych to między innymi:
+Żyjemy w świecie, który otacza nas coraz większą ilością informacji. Jej ilość sprawia, że możemy z jej wyciągać coraz to więcej ilości danych. Wiele z tych danych takie jak obrazy, zdania czy nagrania są opisywane przez wiele parametrów. Redukcja wymiaru jest procesem zmniejszenia liczby zmiennych przeznaczonych do analizy, a zarazem zachowanie w nich jak najwięcej istotnych informacji. Powody dla których chcemy zmniejszyć wymiarowość danych to między innymi:
 \begin{itemize}
 	\item Część zmiennych opisująca dane jest ze sobą nadmiernie skorelowana lub niesie ze sobą cechy, które nie są istotne statystycznie i usunięcie ich nie wpływa na poprawę działania modeli statystycznych lub uczenia maszynowego.
 	\item Dane bardzo wysokiego wymiaru są trudne do analizy lub operacje na nich zajmują tak dużo czasu i zasobów że stają się one bezużyteczne. 
@@ -237,6 +237,7 @@ Analiza składowych głównych (\textit{ang. Principal Components Analysis, \tex
 	\caption{Wizualizacja PCA na zbiorze punktów w przestrzeni dwuwymiarowej.}
 	\label{fig:pca}
 \end{figure}
+
 Wykres \ref{fig:pcacumsum} pokazuje zależność między ilością składników PCA, a procentem wariancji opisywanym przez składniki na podstawie zbioru danych MNIST. Ilość składników mieści się w przedziale od 1 do 784 (28 razy 28 pixeli). Jak można zauważyć dane reprezentowane przez około 80 wartości są w stanie opisać 90\% wariancji danych co jest znaczą redukcją z 784. Przy 400 składnikach osiągamy praktycznie 100\% pokrycia. 
 \begin{figure}[h!]
 	\centering
@@ -245,12 +246,24 @@ Wykres \ref{fig:pcacumsum} pokazuje zależność między ilością składników 
 	\label{fig:pcacumsum}
 \end{figure}
 \subsubsection{Autoenkoder}
+Użycie autoenkodera jest jedną z możliwości jaką mamy jeśli chcemy dokonać redukcji wymiarów. Jego budowa, wymusza naukę jak najlepszej reprezentacji danych w kodzie. Zadaniem enkodera jest zachowanie w zmiennych jak najwięcej informacji dotyczących wejścia, a dekoder ma z nich odwzorować jak najwięcej informacji. Najważniejszą cechą autoenkodera jest możliwość nauki przekształceń zarówno liniowych jak i nieliniowych w zależności od doboru funkcji aktywacji.
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=12.5cm]{pictures/aelatentspace.png}
-	\caption{Przestrzeń dwuwymiarowej zmiennej ukrytej.}
+	\includegraphics[width=10.5cm]{pictures/aelatentspace.png}
+	\caption{Przestrzeń dwuwymiarowej zmiennej ukrytej dla zbioru MNIST.}
 	\label{fig:latentspaceae}
 \end{figure}
+
+\subsubsection{Porównanie obu metod}
+Obie przedstawione metody redukowania wymiarów są bardzo dobrymi wyborami. Wybór jednej z nich powinien zostać dopasowany do naszych potrzeb i do zbioru danych którego używamy. PCA, będąc ograniczone do jedynie liniowych przekształceń jest szybsze niż autoenkoder, który wymaga treningu. Jest ono też lepszym wyborem kiedy wiemy, że nasze dane są nadmiernie skorelowane. Rozpatrzmy przykład zbioru danych opisującego takie cechy ludzi jak wzrost, waga, kolor oczu oraz długość włosów. Wiemy, że czyjaś waga jest zależna od wagi. PCA w takim przykładzie bez problemu odnajdzie tą zależność i zredukuje. Autoenkoder jest lepszym wyborem, kiedy mamy do czynienia z danymi, które są o wiele bardziej złożone, czyli obrazy czy pliki audio. Różnica pomiędzy nauką liniowych oraz nielinowych przekształceń została pokazana na rysunku \ref{fig:pcavsautoenkoder}.  
+Jednowarstwowy autoenkoder z liniową funkcja aktywacji na każdej warstwie zachowuje się dokładnie tak samo jak PCA.\cite{aevspca}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=14cm]{pcavsautoencoder.pdf}
+	\label{fig:pcavsautoenkoder}
+	\caption{Liniowe i nieliniowe przekształcenie.}
+\end{figure}
+
 \subsection{Odszumianie obrazów}
 Model autoenkodera przeznaczony do odszumiania danych, często dostaje swoją nazwę i jest określany mianem DAE \textit{(Denoising autoencoder)}. DAE, tak jak zwykły autoenkoder, próbuje w jak najlepszy sposób skompresować dane, zachowując jak najwięcej istotnych informacji. Najważniejszą różnicą między tymi modelami są dane, które dostają na wejście i wyjście. Obrazy przyjmowane na warstwę wejściową są zaszumione natomiast te z warstwy wyjściowej pochodzą prosto ze zbioru danych.
 Powodem dla którego autoenkodery tak dobrze nadają się do odszumiania jest ich umiejętność kompresji danych. Kompresja, której dokonują te modele jest stratna. W przypadku kiedy naszym głównym zadaniem jest jak najlepsze odtworzenie danych wejściowych jest to kłopot, jednak w tym przypadku możemy wykorzystać tą własność na naszą korzyść. Porównując wyjście modelu z danymi bez szumu, zapewniamy, że model nauczy się w jakimś stopniu odtwarzać je poprawnie. Zmuszamy w ten sposób model do ignorowania nieistotnych części naszych danych oraz zapamiętywanie tylko tych, na podstawie których będzie możliwe jak najlepsze odwzorowanie wejścia sieci.
@@ -287,21 +300,21 @@ Tradycyjna architektura nie zapewnia nam przed treningiem, czy przestrzeń zmien
 Spoglądając na rysunek \ref{fig:latentspaceae} możemy zaobserwować, że przestrzeń zawiera luki. Szczególnie dobrze to widać między klasami oznaczającymi jedynki oraz siódemki. Kolejnym problemem widocznym na tej grafice jest brak separacji między klasami. Niektóre z nich są dobrze odseparowane od siebie, jednak inne całkowicie na siebie nachodzą, jak siódemki z dziewiątkami czy trójki z piątkami. Zadaniem modelu jest jak najlepsze odzwierciedlenie skompresowanych danych, a nie dbanie o to, czy rozkład zmiennych kodu spełnia nasze warunki. Może się tak zdarzyć, że sieć nauczy się akurat takiej dystrybucji, która nam pasuje, ale jest to bardzo mało prawdopodobne. Jeśli chcemy zbudować model generacyjny musimy mieć zagwarantowane, że za każdym razem dostaniemy rozkład spełniający odpowiednie warunki. 
 \chapter{Wariacyjny autoenkoder}
 \section{Informacje ogóle}
-Wariacyjny autoenkoder rozwiązuje problemy generacyjny tradycyjnego modelu. VAE ma na celu skompresowanie danych do określonego wielowymiarowego rozkładu ukrytego, a następnie z próbki z tej dystrybucji, próbuje jak najlepiej zrekonstruować wejście. Najczęściej rozkładami wybieranymi do tego celu są rozkłady normalne. Rozkład normalny jest opisywany przy pomocy dwóch wartości: średnia, która oznaczana jest znakiem $\mu$ oraz odchylenie standardowe oznaczane $\sigma$. Jeśli chcemy dane skompresować do kodu o długości $n$, enkoder wygeneruje dwa wektory $n$-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z $n$ rozkładów normalnych.\\
+Wariacyjny autoenkoder rozwiązuje problemy generacyjne tradycyjnego modelu. VAE ma na celu skompresowanie danych do określonego wielowymiarowego rozkładu ukrytego, a następnie z próbki tej dystrybucji, próbuje jak najlepiej zrekonstruować wejście. Model ten, należy go grupy wariacyjnych metod Bayesowskich, czemu zawdzięcza swoją nazwę. Dystrybucjami najczęściej wybieranymi do reprezentacji zmiennych ukrytych są rozkłady normalne. Rozkład normalny jest opisywany przy pomocy dwóch wartości: średnia, która oznaczana jest znakiem $\mu$ oraz odchylenie standardowe oznaczane $\sigma$. Jeśli chcemy dane skompresować do kodu o długości $n$, enkoder wygeneruje dwa wektory $n$-wymiarowe, z którego jeden będzie przechowywał wartości średniej a drugi odchylenia standardowego dla każdego z $n$ rozkładów normalnych co przedstawia rysunek \ref{fig:vaeschemat}.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}
 		\node (true) at (-7, 0) {\includegraphics[width=2.5cm]{vaeorg1.png}};
 		\draw[thick] (-4.8, 1) -- (-4.8, -1) node[pos=0.5] (enkoderin){} -- (-3.7, -0.6) -- (-3.7, 0.6) node[pos=0.5] (enkoderout){} -- cycle;
-		\draw[-latex, thick] (true.east) -- (enkoderin.west);
-		\node[scale=0.7](stdv) at (-2.5, 0) {\(\begin{bmatrix}
-				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38
-		\end{bmatrix}\)};
-		\node[scale=0.7] (meanv) at (-1.5, 0) {\(\begin{bmatrix}
-				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38
-			\end{bmatrix}\)};
-		\draw[-latex, thick](enkoderout.east) -- (stdv.west);
-		\node[scale=0.7] (nv) at (0.5, 0) {\(\begin{bmatrix}
+		\draw[-latex, thick] (true.east) -- (enkoderin.west);                                                                                 
+		\node[scale=0.7](stdv) at (-2.5, 0) {\(\begin{bmatrix}                                                                                
+				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38                                                                                              
+		\end{bmatrix}\)};                                                                                                                     
+		\node[scale=0.7] (meanv) at (-1.5, 0) {\(\begin{bmatrix}                                                                              
+				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38                                                                                              
+			\end{bmatrix}\)};                                                                                                                    
+		\draw[-latex, thick](enkoderout.east) -- (stdv.west);                                                                                 
+		\node[scale=0.7] (nv) at (0.5, 0) {\(\begin{bmatrix}                                                                                  
 				 \mathcal{N}(0.34,0.92)\\ \mathcal{N}(0.34,0.92) \\ \vdots \\ \mathcal{N}(0.34,0.92) \\ \mathcal{N}(0.34,0.92)
 			\end{bmatrix}\)};
 		\draw[-latex, thick] (meanv.east) -- (nv.west);
@@ -325,9 +338,10 @@ Wariacyjny autoenkoder rozwiązuje problemy generacyjny tradycyjnego modelu. VAE
 
 	\end{tikzpicture}
 	\caption{Schemat budowy wariacyjnego autoenkodera.}
+	\label{fig:vaeschemat}
 \end{figure}
-\\
- Ograniczając enkoder do nauki wyłącznie tej dystrybucji z której próbkujemy losowo zmienne ukryte z których rekonstruujemy obrazy zapewniamy sobie gładką oraz ciągłą dystrybucje zmiennych losowych. Oczekujemy, że dowolna próbka z przestrzeni zostanie celnie odwzorowana przez dekoder. Dlatego wartości, które sa blisko będą generowały podobne wyjście.\\
+
+ Ograniczając enkoder do nauki wyłącznie tej dystrybucji z której próbkujemy losowo zmienne ukryte na których podstawie rekonstruujemy obrazy, zapewniamy sobie gładką oraz ciągłą dystrybucje zmiennych losowych. Dekoder patrząc na obraz wyjściowy i porównując go z prawdziwym, nauczy się odkodowywać niedaleko oddalone od siebie punkty z rozkładu w bardzo podobny sposób.
 
 \begin{figure}[h!]
 	\centering
@@ -368,48 +382,6 @@ Wariacyjny autoenkoder rozwiązuje problemy generacyjny tradycyjnego modelu. VAE
 	\end{tikzpicture}
 	\caption{Wielowymiarowy rozkład zmiennej.}
 \end{figure}
-\section{Motywacja statystyczna}
-Powiedzmy ze istnieje zmienna ukryta $z$, która generuje obserwację $x$. Posiadamy tylko informację o $x$ i chcemy się dowiedzieć z jakiego $z$ dana obserwacja powstała. Aby tego dokonać powinniśmy policzyć $p(z|x)$. Z twierdzenia Bayesa wiemy że:\\
-\begin{center}
-	$p(z|x)=\dfrac{p(x|z)p(z)}{p(x)}$
-\end{center}
-Aby obliczyć rozkład marginalny $p(x)$ musimy policzyć:
-\begin{center}
-	$p(x) = \displaystyle\int_{z}^{}p(x,z)dz$
-\end{center}
-Obliczenie tej całki jest bardzo trudne ponieważ $z$ jest często wielowymiarowe i przestrzeń przeszukiwań jest kombinatorycznie zwyczajnie za duża aby korzystać z takich metod jak próbkowanie Monte Carlo łańcuchami Markowa.\textit{citation needed :(} \\
-
-\section{Wnioskowanie wariacyjne}
-Rozwiązaniem tego problemu jest próba policzenia rozkładu $q(z|x)$, które będzie jak najlepiej odzwierciedlać $p(z|x)$ i będzie miał rozkład, który będziemy mogli policzyć. 
-\subsection{Dywergencji Kullbacka-Leiblera}
-Jest to miara określająca rozbieżność między dwoma rozkładami prawdopodobieństwa. Nie można określić jej mianem metryki ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq  D_{KL}(Q\|P)$).\\ Naszym celem będzie zminimalizowanie jej.
-\begin{center}
-	$q^\ast(z|x)=\operatorname*{argmin}_{q(z|x)\in Q}(D_{KL}(q(z|x)\|p(z|x)))$
-	\\gdzie $Q$ to rodzina prostych dystrybucji, na przykład rozkładu Gaussa 
-\end{center}
-Policzmy:
-\begin{center}
-	$D_{KL}(q(z|x)\|p(z|x))=\mathbb{E}_{z\sim q(z|x)}\log\dfrac{p(z|x)}{q(z|x)} = 
-	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
-\end{center}
-	 Natrafiamy na kolejny problem ponieważ nie możemy $p(z|x)$ jednak jesteśmy w stanie to przepisać jako:\\
-\begin{center}
-	$p(z|x)=\dfrac{p(z,x)}{p(x)}$
-\end{center}
-Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO (dolna granica dowodów).
-\newpage
-Wybieramy sobie że nasza funkcja $q(z|x)$ będzie $\mathcal{N}(0, \textit{\textbf{I}})$.
-Dywergencja dla dwóch rozkładów normalnych wygląda w następujący sposób. 
-\begin{center}
-	$\dfrac{1}{2}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
-\end{center}
-Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
-\begin{center}
-	$\dfrac{1}{2}\displaystyle\sum_{m}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1$
-\end{center} 
-Jest to pierwsza część naszej funkcji straty. 
-\newpage
-\section{Budowa tmp}
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}[
@@ -451,13 +423,75 @@ Jest to pierwsza część naszej funkcji straty.
 			\draw[connect] (encoder-3-\a) -- (sigma-\b);
 			\draw[connect] (sample-\b) -- (decoder-1-\a);
 		}
-	
+		
 		\node[above=0.1 of encoder-1-1,mygreen!60!black] {wejście};
 		\node[above=0.1 of decoder-3-1,myred!60!black] {wyjście};
 		
 	\end{tikzpicture}
+	\caption{Sieć neuronowa budująca model VAE.}
 \end{figure}
+
+Sieć neuronowa budująca wariacyjny autoenkoder posiada dość nietypową budowę. Ostatnia ukryta warstwa enkodera łączy się z dwoma niepołączonymi ze sobą warstwami reprezentującymi średnią oraz odchylenie standardowe normalnej dystrybucji, której chcemy się nauczyć. Obie warstwy łączą się w jedną, która dokonuje operacji próbkowania z dystrybucji na nauczonych parametrach. Warstwy, reprezentujące średnią, odchylenie standardowe oraz zmienne ukryte muszą posiadać taką samą liczbę neuronów, reprezentującą długość wektora reprezentującego skompresowane dane.
+\section{Formuła matematyczna}
+Model VAE mimo swojego podobieństwa do tradycyjnego autoenkodera znacznie różni się w formulacji matematycznej. Największe różnice obserwujemy w zachowaniu enkodera. Kod, który on produkuje nazywamy wartościami zmiennymi, ponieważ musimy go wywnioskować na podstawie każdej danej. Trenując tradycyjny model nie patrzymy na to, co wiemy o dystrybucji $p(z|x)$, z której pochodzą zmienne. Enkoder wariacyjnego autoenkodera jest, jak już zostało powiedziane, zobowiązany do nauki dystrybucji naszego wyboru. Wyrażenie $p(z|x)$ rozumiemy jako dystrybucję generującą zmienne ukryte na podstawie przedstawionej danej $x$. Chcemy policzyć ten rozkład. Twierdzenie Bayesa mówi nam że:
+\begin{center}
+	$p(z|x)=\dfrac{p(x|z)p(z)}{p(x)}$
+\end{center}
+Aby obliczyć rozkład marginalny $p(x)$ musimy policzyć:
+\begin{center}
+	$p(x) = \displaystyle\int_{z}^{}p(x|z)p(z)dz$
+\end{center}
+Obliczenie tej całki jest bardzo trudne lub nawet obliczeniowo nie możliwe w rozsądnym czasie, ponieważ $z$ jest często wielowymiarowym wektorem, a musimy całkować po wszystkich wymiarach. Aby próbować policzyć tę całkę w inny sposób możemy wybrać jedną z dwóch metod:
+\begin{itemize}
+	\item próbkowanie Monte Carlo łańcuchami Markowa
+	\item wnioskowanie wariacyjne
+\end{itemize}
+Przestrzeń przeszukiwań może być kombinatorycznie za duża aby korzystać z pierwszej metody lub błąd przybliżenia tej całki będzie za duży w przypadku znacznej ilości wymiarów.\textit{citation needed :(} \\
+
+\section{Wnioskowanie wariacyjne}
+Wnioskowanie wariacyjne pozwala nam zastąpić jedną dystrybucje, o której nie wiemy za dużo i trudno z nią pracować na taką, jaka pasuje nam do problemu oraz dobrze odzwierciedla początkową. Używając tej metody, uda nam się rozwiązać problem policzenia rozkładu $p(z|x)$. Zastąpimy go rozkładem $q$, który będzie jak najlepiej odwzorowywał oryginalny rozkład. 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=12cm]{approximate.pdf}
+	\label{fig:approximate}
+	\caption{Prawdziwa oraz przybliżona dystrybucja.}
+\end{figure} 
+
+Wykres \ref{fig:approximate} przedstawia dwie krzywe. Pomarańczowa krzywa, opisująca rozkład normalny w bardzo dobry sposób przybliża prawdziwą dystrybucję.
+\subsection{Dywergencja Kullbacka-Leiblera}
+Aby być w stanie zminimalizować błąd pomiędzy prawdziwą a zamienną dystrybucją musimy posiadać miarę, która określi nam rozbieżność między dwoma rozkładami prawdopodobieństwa. Miarą ta jest dywergencja Kullbacka-Leiblera. Podstawowymi jej własnościami są:
+\begin{itemize}
+	\item Dywergencja Kullbacka-Leiblera nie można określić mianem metryki ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq D_{KL}(Q\|P)$).
+	\item jej wartość jest nieujemna; $D_{KL}(P\|Q)) \geq 0$. Miara przyjmuje wartość 0 tylko w przypadku kiedy $P$ i $Q$ są identycznymi dystrybucjami
+\end{itemize}
+Naszym celem jest zminimalizowanie błędu, co sprawi, że rozkład $q(z|x)$ będzie jak najbardziej podobny do $p(z|x)$.
+\begin{center}
+	$q^\ast(z|x)=\operatorname*{argmin}_{q(z|x)\in Q}(D_{KL}(q(z|x)\|p(z|x)))$
+	\\gdzie $Q$ to rodzina prostych dystrybucji, na przykład rozkładu Gaussa 
+\end{center}
+Policzmy:
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))=\mathbb{E}_{z\sim q(z|x)}\log\dfrac{p(z|x)}{q(z|x)} = 
+	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
+\end{center}
+	 Natrafiamy na kolejny problem ponieważ nie możemy $p(z|x)$ jednak jesteśmy w stanie to przepisać jako:\\
+\begin{center}
+	$p(z|x)=\dfrac{p(z,x)}{p(x)}$
+\end{center}
+Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO (dolna granica dowodów).
 \newpage
+Wybieramy sobie że nasza funkcja $q(z|x)$ będzie $\mathcal{N}(0, \textit{\textbf{I}})$.
+Dywergencja dla dwóch rozkładów normalnych wygląda w następujący sposób. 
+\begin{center}
+	$\dfrac{1}{2}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
+\end{center}
+Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
+\begin{center}
+	$\dfrac{1}{2}\displaystyle\sum_{m}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1$
+\end{center} 
+Jest to pierwsza część naszej funkcji straty. 
+\newpage
+
 \section{Sztuczka reparametryzacyjna}
 Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu po którym będziemy schodzić. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
 \begin{center}
@@ -508,8 +542,8 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 \section{Tensorflow oraz Keras}
 \lipsum[1]\cite{doersch2021tutorial}
 
-\listoftables{} % jeśli są tabele
-\addcontentsline{toc}{chapter}{Spis tabel}
+%\listoftables{} % jeśli są tabele
+%\addcontentsline{toc}{chapter}{Spis tabel}
 
 \listoffigures{} % jeśli są tabele
 \addcontentsline{toc}{chapter}{Spis rysunków}
