@@ -461,7 +461,7 @@ Wykres \ref{fig:approximate} przedstawia dwie krzywe. Pomarańczowa krzywa, opis
 \subsection{Dywergencja Kullbacka-Leiblera}
 Aby być w stanie zminimalizować błąd pomiędzy prawdziwą a zamienną dystrybucją musimy posiadać miarę, która określi nam rozbieżność między dwoma rozkładami prawdopodobieństwa. Miarą ta jest dywergencja Kullbacka-Leiblera. Podstawowymi jej własnościami są:
 \begin{itemize}
-	\item Dywergencja Kullbacka-Leiblera nie można określić mianem metryki ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq D_{KL}(Q\|P)$).
+	\item miary tej nie można określić mianem metryki ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq D_{KL}(Q\|P)$).
 	\item jej wartość jest nieujemna; $D_{KL}(P\|Q)) \geq 0$. Miara przyjmuje wartość 0 tylko w przypadku kiedy $P$ i $Q$ są identycznymi dystrybucjami
 \end{itemize}
 Naszym celem jest zminimalizowanie błędu, co sprawi, że rozkład $q(z|x)$ będzie jak najbardziej podobny do $p(z|x)$.
@@ -469,30 +469,83 @@ Naszym celem jest zminimalizowanie błędu, co sprawi, że rozkład $q(z|x)$ bę
 	$q^\ast(z|x)=\operatorname*{argmin}_{q(z|x)\in Q}(D_{KL}(q(z|x)\|p(z|x)))$
 	\\gdzie $Q$ to rodzina prostych dystrybucji, na przykład rozkładu Gaussa 
 \end{center}
-Policzmy:
+\subsection{Dolna granica dowodów}
+Zapiszmy że:
 \begin{center}
-	$D_{KL}(q(z|x)\|p(z|x))=\mathbb{E}_{z\sim q(z|x)}\log\dfrac{p(z|x)}{q(z|x)} = 
-	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
+%	$D_{KL}(q(z|x)\|p(z|x))=\mathbb{E}_{z\sim q(z|x)}\log\dfrac{p(z|x)}{q(z|x)} = 
+%	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
+	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
 \end{center}
-	 Natrafiamy na kolejny problem ponieważ nie możemy $p(z|x)$ jednak jesteśmy w stanie to przepisać jako:\\
+Policzenie $q(z|x)$ jest proste, ponieważ sami dobieramy sobie jaką dystrybucją jest $q$. W naszym przypadku jest to rozkład normalny. Mimo to, obliczenia nie są możliwe, ponieważ natrafiamy znowu na problem wyznaczenia $p(z|x)$. Typ razem możemy przepisać:
 \begin{center}
-	$p(z|x)=\dfrac{p(z,x)}{p(x)}$
+	$p(z|x)=\dfrac{p(x,z)}{p(x)}$
 \end{center}
-Tu jest dużo matmy której nie chce mi się na razie pisać ale tu będzie ELBO (dolna granica dowodów).
-\newpage
-Wybieramy sobie że nasza funkcja $q(z|x)$ będzie $\mathcal{N}(0, \textit{\textbf{I}})$.
-Dywergencja dla dwóch rozkładów normalnych wygląda w następujący sposób. 
+Podstawmy teraz zapisaną inaczej wartość $p$ do wzoru na dywergencję.
 \begin{center}
-	$\dfrac{1}{2}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
+	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(x,z)}p(x)dz$
+\end{center}
+Własności logarytmów pozwalają nam zamienić iloczyn pod logarytmem na sumę w następujący sposób:
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)} + \log p(x)\right) dz$
+\end{center}
+Mnożąc $q(z|x)$ przez nawias, otrzymujemy sumę od całką, co możemy zapisać jako sumę dwóch całek.
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz + \log p(x)\underbrace{\displaystyle\int_{z}^{}q(z|x)dz}_{\text{$\alpha$}}$
+\end{center}
+Wartość całki, zaznaczonej jako $\alpha$ jest równa 1, dlatego że całkujemy funkcję dystrybucji prawdopodobieństwa po z, więc warunek dla $x$ nie gra dla nas roli. Daje to nam:
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))=\underbrace{\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz}_{\text{$\mathcal{L}$}} + \log p(x)$
+\end{center}
+Na razie nie dokonaliśmy żadnych obliczeń, tylko przepisaliśmy wzór na dywergencję.
+\begin{center}
+	$D_{KL}(q(z|x)\|p(z|x))= \mathcal{L} + \log p(x)$\\
+	$-\mathcal{L} = \log p(x) - D_{KL}(q(z|x)\|p(z|x))$
+\end{center}
+Wartość $\log p(x)$ nosi nazwę dowodu, ponieważ mówi o prawdopodobieństwie otrzymania obserwacji $x$ przez nasz model.
+Parametr $-\mathcal{L}$ nazywamy dolną granicą dowodu \textit{Evidence Lower BOund, \textbf{ELBO}}. Nazwa pochodzi od własności, mówiącej o tym, że jej wartość jest zawsze mniejsza lub równa dowodowi. Własność ta, bierze się z faktu, że 
+dywergencja jest zawsze nieujemne a w naszym przypadku nawet dodatnia. 
+\begin{center}
+	$\mathcal{L}\leq\log p(x)$
+\end{center}
+Wartość dowodu jest stała dla podanego $z$ problem minimalizacji dywergencji możemy zapisać jako:
+\begin{equation}
+	\operatorname*{argmin}D_{KL}(q(z|x)\|p(z|x)) = \operatorname*{argmin}\mathcal{L} = \operatorname*{argmax}-\mathcal{L}
+	\label{equ:argmindkl}
+\end{equation}
+\subsection{Funkcja straty}
+Wiedząc, z twierdzenia Bayesa, że $p(x,z) = p(x|z)p(z)$ możemy przepisać $\mathcal{L}$ jako:
+\begin{center}
+	$\mathcal{L}=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz=$\\
+	$\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x|z)p(z)}\right)dz$
+\end{center}
+Korzystając kolejny raz z własności logarytmów zapisujemy:
+\begin{center}
+	$\mathcal{L}=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z)}dz - \displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(x|z)}dz$
+\end{center}
+Interpretując poszczególne składniki dostajemy:
+\begin{center}
+	$\mathcal{L} =  D_{KL}(q(z|x)\|p(z)) - \mathbb{E}_{z\sim q(z|x)}\log p(x|z)$
+\end{center}
+Równanie \ref{equ:argmindkl} pokazuje, że minimalizacja pierwotnej dywergencji oznacza również minimalizację $\mathcal{L}$. 
+
+Pierwsze wyrażenie reprezentuje odległość pomiędzy naszą dystrybucją zastępującą $p(z|x)$, czyli dystrybucją nauczona przez enkoder, a $p(z)$, czyli rozkład zmiennych ukrytych, który jest przez nas wybierany. W naszym przypadku będzie to rozkład normalny. Drugie wyrażenie to wartość oczekiwana logarytmu prawdopodobieństwa otrzymania obserwacji $x$ z wartości ukrytych wybieranych z dystrybucji $q(z|x)$, której nauczył się enkoder.
+
+Enkoder jak i dekoder jesteśmy w stanie zapisać jako rozkłady prawdopodobieństwa. $q(z|x)$ powie nam jakie zmienne ukryte $z$ reprezentują daną $x$, natomiast $p(x|z)$ generuje nam dane na podstawie otrzymanego kodu. $q(z|x)$ jest dystrybucją enkodera, a $p(x|z)$ dekodera.
+
+Wariacyjny autoenkoder poruszany w pracy generuje zmienne ukryte z rozkładu normalnego $p(z)=\mathcal{N}(0,\textit{\textbf{I}})$. Jeśli weźmiemy wszystkie nasze dane $x$ i przepuścimy je przez enkoder, wiemy, że dystrybucja z której będziemy próbkowali wartości przekazywane następnie do dekodera będą rozłożone normalnie. Rozwiązuje nam to problem tradycyjnego autoenkodera, którego zmienne ukryte są rozrzucone w sposób, który nie jesteśmy w stanie kontrolować. Znając już naszą dystrybucję możemy policzyć dywergencję.
+\begin{center}
+	$\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
 \end{center}
 Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
 \begin{center}
-	$\dfrac{1}{2}\displaystyle\sum_{m}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1$
+	$\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1$
 \end{center} 
-Jest to pierwsza część naszej funkcji straty. 
-\newpage
+gdzie D to długość wektora zmiennych ukrytych. Jest to pierwsza część naszej funkcji straty. 
 
-\section{Sztuczka reparametryzacyjna}
+Druga część funkcji straty jest nazywana błędem rekonstrukcji. Możemy zastąpić wartość oczekiwaną wartością jednej próbki, ponieważ do trenowania wag modeli używamy metody gradientu stochastycznego. Aby uniknąć liczenia skompilowanych dystrybucji prawdopodobieństwa $\log p(x|z)$, gdzie poszczególne wymiary $x$ są zależne od siebie, liczymy proste rozkłady na każdym wymiarze osobno. Aby to osiągnąć używamy binarnej entropii krzyżowej. W praktyce często stosujemy również inne funkcje takie jak błąd średnio-kwadratowy, będący bardziej intuicyjnym rozwiązaniem.
+Możemy tak zrobić, ponieważ wartość prawdopodobieństwa należy do przedziału $\left[ 0, 1\right] $, więc ujemny logarytm z małej liczby (słabego odwzorowania wejścia przez dekoder) będzie ogromna liczą, a z bliskiej jedynki małą. W ten sam sposób zachowuje się średni błąd kwadratowy.
+\newpage
+\subsection{Sztuczka reparametryzacyjna}
 Model \textit{VAE} po zakodowaniu wejścia dokonuje operacji próbkowania (\textit{sampling}) z dystrybucji na nauczonych parametrach. Przy propagacji do przodu nie jest to problem, jednak podczas propagacji wstecznej jest to nie możliwe. Operacja próbkowania nie jest różniczkowalna co sprawia, że nie możemy policzyć gradientu po którym będziemy schodzić. Sposobem obejścia tego problemu jest zastosowanie sztuczki (\textit{reparameterization trick}). Próbkowanie z dystrybucji $z\sim\mathcal{N}(\mu, \sigma)$ jesteśmy w stanie zapisać jako:
 \begin{center}
 	$\epsilon\sim\mathcal{N}(0,1)$\\
