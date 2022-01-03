@@ -18,7 +18,6 @@
 \usepackage{graphicx}
 \graphicspath{{./pictures}}
 \usepackage{import}
-\usepackage{svg}
 
 \usepackage{pgfplots}
 
@@ -591,6 +590,31 @@ Pozornie nic się nie zmieniło, jednak teraz jesteśmy w stanie poprowadzić gr
 	\end{tikzpicture}
 	\caption{Graficzna reprezentacja reparametryzacji.}
 \end{figure}
+\subsection{Zastosowania}
+Wariacyjny autoenkoder jako pochodna tradycyjnego modelu, może zostać zastosowany, do takich samych zadań jak, detekcja anomalii, odszumianie oraz kompresja danych. Głównym jednak powodem dla którego chcemy używać modelu VAE jest jego możliwość generowania danych. Mamy już znaną dystrybucję, z której możemy próbkować zmienne ukryte aby generować nowe dane, podobne do oryginalnych ze zbioru danych. Rysunek \ref{fig:vaelatent} przestawia zmienne ukryte wygenerowane przez enkoder dla obrazków z MNIST. Porównując obrazek \ref{fig:vaelatent} z \ref{fig:latentspaceae} jasno widzimy, że model VAE rozwiązał omówione problemy generacyjne tradycyjnego autoenkodera. Przestrzeń jest kompletna i ciągła. Punkty dystrybucji znajdujące się blisko siebie, generują podobne wyniki co widać na obrazku \ref{fig:vaelatentgen}. Tak jak chcieliśmy, zmienne ukryte są rozłożone względem rozkładu normalnego. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=14cm]{vaelatentspace.png}
+	\caption{Przestrzeń zakodowanych zmiennych modelem VAE.}
+	\label{fig:vaelatent}
+\end{figure}
+Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zbioru danych MNIST, a prawa strona pokazuje dane wygenerowane przez wytrenowany model. Generując dane, nie potrzebujemy już enkodera. Na wejście dekoder, dostaje losowo wybrane punkty z dystrybucji, którą wybraliśmy sobie podczas budowy modelu. W naszym przypadku jest to rozkład normalny.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=14cm]{vaelatentgen.png}
+	\caption{Wygenerowane obrazy modelem VAE na przestrzeni zmiennych.}
+	\label{fig:vaelatentgen}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=12cm]{vaegeneracja.png}
+	\caption{Porównanie prawdziwych oraz wygenerowanych obrazów.}
+	\label{fig:vaegeneracja}
+\end{figure}
+
+
 \chapter{Implementacja}
 \section{Tensorflow oraz Keras}
 \lipsum[1]\cite{doersch2021tutorial}
