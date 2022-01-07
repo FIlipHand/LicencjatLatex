@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{book} % nie: report!
+\documentclass[a4paper,12pt,oneside]{book} % nie: report!
 
 
 % pakiety
@@ -120,13 +120,9 @@
 \begin{document}
 \sloppy
 
-
-
 \thispagestyle{empty}
 
 \includepdf{stronatytulowasvg}
-
-%\thispagestyle{empty}
 
 \tableofcontents{}
 
@@ -147,9 +143,34 @@ Celem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytyc
  		$\mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2$
  \end{center}
 
-\begin{figure}[h]
-	\centering\includegraphics[width=14.5cm]{pictures/autoencoder.png}
+%\begin{figure}[h]
+%	\centering\includegraphics[width=14.5cm]{autoencoder.png}
+%	\caption{Schemat budowy autoenkodera.}
+%\end{figure}
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		\node (true) at (-6, 0) {\includegraphics[width=3.5cm]{aeorg.png}};
+		\draw[thick] (-3.4, 1.5) -- (-3.4, -1.5) node[pos=0.5] (enkoderin){} -- (-1.7, -0.8) -- (-1.7, 0.8) node[pos=0.5] (enkoderout){} -- cycle;
+		\draw[-latex, thick] (true.east) -- (enkoderin.west);    
+				\node[scale=0.7] (sample) at (0, 0) {\(\begin{bmatrix}
+				3.18 \\ 1.83 \\ \vdots \\ 0.71 \\ 2.94
+			\end{bmatrix}\)};                                     
+		\draw[-latex, thick](enkoderout.east) -- (sample.west);                                                                                 
+		\draw[thick] (1.7, 0.8) -- (1.7, -0.8) node[pos=0.5] (dekoderin){} -- (3.4, -1.7) -- (3.4, 1.7) node[pos=0.5] (dekoderout){} -- cycle;
+		\node (recon) at (6, 0) {\includegraphics[width=3.5cm]{aerec.png}};
+		\draw[-latex, thick](sample.east) -- (dekoderin.west);
+		\draw[-latex, thick](dekoderout.east) -- (recon.west);
+		% Labels
+		\node at (-6, -2.2) {wejście};
+		\node at (6, -2.2) {wyjście};
+		\node at (0, -1.5) {wektor kodu};
+		\node at (-2.52, 0) {enkoder};
+		\node at (2.52, 0) {dekoder};
+		
+	\end{tikzpicture}
 	\caption{Schemat budowy autoenkodera.}
+	\label{fig:aeschemat}
 \end{figure}
 \newpage
 \subsection{Zbiór danych MNIST}
@@ -269,7 +290,7 @@ Model autoenkodera przeznaczony do odszumiania danych, często dostaje swoją na
 Powodem dla którego autoenkodery tak dobrze nadają się do odszumiania jest ich umiejętność kompresji danych. Kompresja, której dokonują te modele jest stratna. W przypadku kiedy naszym głównym zadaniem jest jak najlepsze odtworzenie danych wejściowych jest to kłopot, jednak w tym przypadku możemy wykorzystać tą własność na naszą korzyść. Porównując wyjście modelu z danymi bez szumu, zapewniamy, że model nauczy się w jakimś stopniu odtwarzać je poprawnie. Zmuszamy w ten sposób model do ignorowania nieistotnych części naszych danych oraz zapamiętywanie tylko tych, na podstawie których będzie możliwe jak najlepsze odwzorowanie wejścia sieci.
 Rysunek \ref{fig:noisedae} pokazuje możliwości modelu na przykładzie zbioru danych MNIST. Do obrazów przeznaczonych do treningu został dodany szum. Zaszumiony obraz powstał przez dodanie do oryginalnego obrazu losowo wybranych wartości z rozkładu Gaussa $\mathcal{N}(0,1)$ przemożonych przez stałą, która w tym przypadku wynosi $0.4$. Następnie obrazy wejściowe zostały skompresowane do kodu o długości pięć, a następnie odkodowane przez dekoder. 
 \begin{figure}[h!]
-	\centering\includegraphics[width=14.5cm]{pictures/noised1.png}
+	\centering\includegraphics[width=14.5cm]{denoisingae.pdf}
 	\caption{Obraz z szumem, odzyskany oraz prawdziwy.}
 	\label{fig:noisedae}
 \end{figure}
@@ -284,7 +305,7 @@ Można wyróżnić dwa główne podejścia wypełniania obrazów:
 \end{itemize}
 Rysunek \ref{fig:lukaae} przedstawia drugie podejście. 
 \begin{figure}[h]
-	\centering\includegraphics[width=14.5cm]{pictures/completion1.png}
+	\centering\includegraphics[width=14.5cm]{completionae.pdf}
 	\caption{Obraz z luką, odzyskany oraz prawdziwy.}
 	\label{fig:lukaae}
 \end{figure}
@@ -307,19 +328,19 @@ Wariacyjny autoenkoder rozwiązuje problemy generacyjne tradycyjnego modelu. VAE
 		\node (true) at (-7, 0) {\includegraphics[width=2.5cm]{vaeorg1.png}};
 		\draw[thick] (-4.8, 1) -- (-4.8, -1) node[pos=0.5] (enkoderin){} -- (-3.7, -0.6) -- (-3.7, 0.6) node[pos=0.5] (enkoderout){} -- cycle;
 		\draw[-latex, thick] (true.east) -- (enkoderin.west);                                                                                 
-		\node[scale=0.7](stdv) at (-2.5, 0) {\(\begin{bmatrix}                                                                                
-				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38                                                                                              
+		\node[scale=0.7](meanv) at (-2.5, 0) {\(\begin{bmatrix}                                                                                
+		1.88 \\ 1.24 \\ \vdots \\ 2.09 \\ 2.18                                                                                        
 		\end{bmatrix}\)};                                                                                                                     
-		\node[scale=0.7] (meanv) at (-1.5, 0) {\(\begin{bmatrix}                                                                              
-				0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.38                                                                                              
+		\node[scale=0.7] (stdv) at (-1.5, 0) {\(\begin{bmatrix}                                                                              
+            0.34 \\ 0.92 \\ \vdots \\ 1.69 \\ 0.15                                                                        
 			\end{bmatrix}\)};                                                                                                                    
-		\draw[-latex, thick](enkoderout.east) -- (stdv.west);                                                                                 
+		\draw[-latex, thick](enkoderout.east) -- (meanv.west);                                                                                 
 		\node[scale=0.7] (nv) at (0.5, 0) {\(\begin{bmatrix}                                                                                  
-				 \mathcal{N}(0.34,0.92)\\ \mathcal{N}(0.34,0.92) \\ \vdots \\ \mathcal{N}(0.34,0.92) \\ \mathcal{N}(0.34,0.92)
+				 \mathcal{N}(1.88,0.34)\\ \mathcal{N}(1.24,0.92) \\ \vdots \\ \mathcal{N}(2.09,1.69) \\ \mathcal{N}(2.18,0.15)
 			\end{bmatrix}\)};
-		\draw[-latex, thick] (meanv.east) -- (nv.west);
+		\draw[-latex, thick] (stdv.east) -- (nv.west);
 		\node[scale=0.7] (sample) at (2.5, 0) {\(\begin{bmatrix}
-				0.74 \\ 0.12 \\ \vdots \\ 2.01 \\ 0.13
+				1.28 \\ 1.87 \\ \vdots \\ 2.01 \\ 2.28
 			\end{bmatrix}\)};
 		\draw[-latex, thick] (nv.east) -- (sample.west);
 				\draw[thick] (3.7, 0.6) -- (3.7, -0.6) node[pos=0.5] (dekoderin){} -- (4.8, -1) -- (4.8, 1) node[pos=0.5] (dekoderout){} -- cycle;
@@ -329,8 +350,8 @@ Wariacyjny autoenkoder rozwiązuje problemy generacyjne tradycyjnego modelu. VAE
 		% Labels
 		\node at (-7, -1.5) {wejście};
 		\node at (7, -1.5) {wyjście};
-		\node at (-2.5, -1.5) {$\sigma$};
-		\node at (-1.5, -1.5) {$\mu$};
+		\node at (-2.5, -1.5) {$\mu$};
+		\node at (-1.5, -1.5) {$\sigma$};
 		\node at (2.5, -1.5) {$z$};
 		\node at (0.5, -1.5) {dystrybucje};
 		\node at (-4.25, -1.5) {enkoder};
@@ -622,11 +643,11 @@ Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zb
 \chapter{Implementacja}
 \section{TensorFlow oraz Keras}
 \subsection{Informacje ogóle}
-TensorFlow jest jedną z najbardziej popularnych bibliotek implementującą metody uczenia maszynowego. Twórcą projektu jest Google, które udostępniło je jako wolne oprogramowanie. Biblioteka jest dostępna dla wielu języków programowania, jednak najczęściej jest używana programując w języku Python. Programowanie bezpośrednio w TensorFlow wymaga wielu umiejętności, a kod jest mało czytelny, dla wielu osób. Problemy te rozwiązuje Keras, który jest nakładką na bibliotekę. 
+TensorFlow jest jedną z najbardziej popularnych bibliotek implementującą metody uczenia maszynowego. Twórcą projektu jest Google, które udostępniło je jako wolne oprogramowanie. Biblioteka jest dostępna dla wielu języków programowania, jednak najczęściej jest używana programując w języku Python. Programowanie bezpośrednio w TensorFlow jest dość skomplikowane, a kod jest mało czytelny dla wielu osób. Problemy te rozwiązuje Keras, który jest nakładką na bibliotekę. 
 
 Keras również jest darmową i otwartą biblioteką, jednak jest tylko przeznaczona dla języka Python. Implementuje prosty i przejrzysty sposób tworzenia modeli oraz sieci neuronowych. Poza tradycyjnymi, głębokimi architekturami, możliwe jest tworzenie sieci rekurencyjnych oraz konwolucyjnych. Obie biblioteki wspierają rozproszone obliczenia na kartach graficznych. 
 
-W implementacji modeli AE i VAE, użyteczną biblioteką będzie NumPy. Jest to wolnych projekt, umożliwiający proste operacje na macierzach oraz wektorach. Jako biblioteka napisana w języku C, dokonuje o wiele szybszych operacji w porównaniu do tych, które wykonywane by były w czystym Pythonie. 
+W implementacji modeli AE i VAE, użyteczną biblioteką będzie NumPy. Jest to wolnych projekt, umożliwiający operacje na macierzach oraz wektorach. Jako biblioteka napisana w języku C, dokonuje o wiele szybszych operacji w porównaniu do tych, które wykonywane by były w czystym Pythonie. 
 
 Istnieje kilka możliwości implementacji tradycyjnego oraz wariacyjnego autoenkodera używając sieci gęstych, konwolucyjnych lub nawet rekurencyjnych takich jak LSTM (\textit{long short-term memory}). Każda z nich może nadać się do innych zbiorów danych, jednak wszystkie w kluczowych punktach działają w ten sam sposób. Wejście zostaje skompresowane do odpowiedniej długości kodu, a w przypadku autoenkoderów wariacyjnych do wielowymiarowego rozkładu normalnego. 
 \subsection{Implementacja w języku Python}
@@ -649,7 +670,7 @@ Pierwsza warstwa wejściowa jest przeznaczona aby przyjmować dane o wymiarze ta
 	\includegraphics[width=\linewidth]{modelae.pdf}
 \end{figure}
 
-Zanim zaczniemy trenować naszą sieć musimy sprecyzować funkcję straty oraz optymalizator. Funkcja użyta w tym przykładzie to błąd średnio-kwadratowy, który jest dobrym wyborem w przypadku obrazów. Optymalizator to algorytm znajdowania wag sieci, dla których funkcja straty jest jak najmniejsza, a co za tym idzie nasz model działa jak najlepiej. Wybraną metodą jest algorytm \textit{adam}, który jest pochodną stochastycznego gradientu, jednak obliczenia okupują mniej pamięci, jest prosty obliczeniowo oraz znajduje optymalne rozwiązanie szybciej niż tradycyjne podejście.\cite{adam} Jednym z jej twórców jest Diedrik Kingma, który również jako pierwszy zaproponował model wariacyjnego autoenkodera. Aby nie przetrenować modelu, dodajemy zbiór walidacyjny, który przejmuje 20\% danych treningowych. Walidacja służy nam do sprawdzenia na innych danych niż testowe i treningowe, czy model się nie przetrenował. W momencie, kiedy błąd na zbiorze walidacyjnym będzie rosnąć zamiast maleć przez 3 epoki, callback \textit{EarlyStopping} przerwie trening wag i przywróci wagi, dla których wynik był najlepszy.
+Zanim zaczniemy trenować naszą sieć musimy sprecyzować funkcję straty oraz optymalizator. Funkcja użyta w tym przykładzie to błąd średnio-kwadratowy, który jest dobrym wyborem w przypadku porównywania obrazów. Optymalizator to algorytm znajdowania wag sieci, dla których funkcja straty jest jak najmniejsza, a co za tym idzie nasz model działa jak najlepiej. Wybraną metodą jest algorytm \textit{adam}, który jest pochodną stochastycznego gradientu, jednak obliczenia okupują mniej pamięci, jest prosty obliczeniowo oraz znajduje optymalne rozwiązanie szybciej niż tradycyjne podejście.\cite{adam} Jednym z jej twórców jest Diedrik Kingma, który również jako pierwszy zaproponował model wariacyjnego autoenkodera. Aby nie przetrenować modelu, dodajemy zbiór walidacyjny, który przejmuje 20\% danych treningowych. Walidacja służy nam do sprawdzenia na innych danych niż testowe i treningowe, czy model się nie przetrenował. W momencie, kiedy błąd na zbiorze walidacyjnym będzie rosnąć zamiast maleć przez 3 epoki, callback \textit{EarlyStopping} przerwie trening wag i przywróci wagi, dla których wynik był najlepszy.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=\linewidth]{trainae.pdf}
@@ -657,9 +678,9 @@ Zanim zaczniemy trenować naszą sieć musimy sprecyzować funkcję straty oraz 
 
 Po treningu modele są już gotowe go użytkowania. Aby dokonać przy ich pomocy obliczeń, wykonujemy funkcję \textit{predict}, do której podajemy odpowiednich wymiarów macierz. 
 \subsubsection{Wariacyjny autoenkoder}
-Zbiór danych przeznaczony dla wariacyjnego autoenkodera nie różni się w żaden sposób od pokazanego wyżej. 
+Przygotowanie zbioru danych dla wariacyjnego autoenkodera nie różni się w żaden sposób od pokazanego wyżej. 
 
-Implementacja modelu VAE jest nieco bardziej skomplikowana niż AE. Bierze się to jego budowy, która wymaga rozłączenia jednej warstwy na dwie niezależne przyłączone do tej samej co widać na obrazku \ref{fig:vaenetwork}. Warstwy reprezentujące średnią i odchylenie standardowe są połączone z ostatnią warstwą ukrytą. W naszym przypadku, traktujemy jedną warstwę jako logarytm z odchylenia standardowego, ponieważ jego wartość nie może być ujemna. Kiedy chcemy użyć zmiennych wystarczy że dokonamy na nich operacji \textit{exp}. Funkcja \textit{probka} dokonuje próbkowania z dystrybucji na nauczonych parametrach stosując opisaną wcześniej sztuczkę reparametryzacyjną. Zmienna \textit{eps} przechowuje wartości losowane z rozkładu normalnego i ich rozmiar jest równy ilości zmiennych ukrytych i wielkości partii danych \textit{batch size}. Na etapie tworzenia architektury modelu jeszcze nie znamy wielkości batch-a, więc używając metody \textit{shape} będziemy ją dynamicznie zmieniać w zależności od przekazanych parametrów. Dostępna w paczce Keras warstwa \textit{Lambda} pozwala nam wywołać wskazaną funkcję na wartościach neuronów. Warstwę łączymy z obiema wcześniejszymi warstwami na raz. Implementacja dekodera jest identyczna jak dla tradycyjnego autoenkodera. Funkcja strady modelu VAE nie jest możliwa do automatycznego policzenia tak jak zostało to pokazane w AE. Zmienna \textit{z$\_$odkodowane} będzie przechowywać obraz odkodowany ze zmiennych ukrytych, który będzie porównywany z tym przekazanym na wejście sieci.
+Implementacja modelu VAE jest nieco bardziej skomplikowana niż AE. Bierze się to jego budowy, która wymaga rozłączenia jednej warstwy na dwie niezależne przyłączone do tej samej co widać na obrazku \ref{fig:vaenetwork}, oraz implementacji własnej funkcji straty. Warstwy reprezentujące średnią i odchylenie standardowe są połączone z ostatnią warstwą ukrytą. W naszym przypadku, traktujemy jedną warstwę jako logarytm z odchylenia standardowego, ponieważ jego wartość nie może być ujemna. Kiedy chcemy użyć zmiennych wystarczy, że dokonamy na nich operacji \textit{exp}. Funkcja \textit{probka} dokonuje próbkowania z dystrybucji na nauczonych parametrach stosując opisaną wcześniej sztuczkę reparametryzacyjną. Zmienna \textit{eps} przechowuje wartości losowane z rozkładu normalnego i ich rozmiar jest równy ilości zmiennych ukrytych i wielkości partii danych (\textit{batch size}). Na etapie tworzenia architektury modelu jeszcze nie znamy wielkości batch-a, więc używając metody \textit{shape} będziemy ją dynamicznie zmieniać w zależności od przekazanych parametrów. Dostępna w paczce Keras warstwa \textit{Lambda} pozwala nam wywołać wskazaną funkcję na wartościach neuronów. Warstwę łączymy z obiema wcześniejszymi warstwami na raz. Implementacja dekodera jest identyczna jak dla tradycyjnego autoenkodera. Funkcja strady modelu VAE nie jest możliwa do automatycznego policzenia tak jak zostało to pokazane w AE. Zmienna \textit{z$\_$odkodowane} będzie przechowywać obraz odkodowany ze zmiennych ukrytych, który będzie porównywany z tym przekazanym na wejście sieci.
 
 \begin{figure}[h!]
 	\centering
@@ -672,7 +693,7 @@ Implementacja modelu VAE jest nieco bardziej skomplikowana niż AE. Bierze się 
 \end{figure}
 
 \newpage
-Aby policzyć wartość funkcji straty tworzymy nową warstwę po ostatniej. Jej jedynym zadaniem jest policzenie straty i nie ma ona możliwych do trenowania parametrów. Pierwsza funkcja oblicza wartość funkcji, a druga pozwala jej policzenie i minimalizacje przez model. Aby porównać obrazy muszą być one w takich samych wymiarach co gwarantujemy przez wywołanie funkcji \textit{flatten} na prawdziwym i odkodowanym obrazie. Błąd rekonstrukcji wybrany w tym przykładzie to błąd średnio-kwadratowy. Zmienna \textit{kld} przechowuje obliczoną wartość dywergencji Kullbacka-Leiblera z wyprowadzonego wzoru \ref{equ:kld_loss}. Warstwę obliczająca stratę jest połączona z wejściem i wyjściem całego modelu, co umożliwia dostęp do wejścia ze zbioru danych oraz obrazów odkodowanych ze zmiennych ukrytych. 
+Aby policzyć wartość funkcji straty tworzymy nową warstwę przyłączoną do ostatniej. Jej jedynym zadaniem jest policzenie straty i nie ma ona możliwych do trenowania parametrów. Pierwsza funkcja oblicza wartość funkcji, a druga pozwala jej policzenie i minimalizacje przez model. Aby móc porównać obrazy, muszą być one w takich samych wymiarach, co gwarantujemy przez wywołanie funkcji \textit{flatten} na prawdziwym i odkodowanym obrazie. Błąd rekonstrukcji wybrany w tym przykładzie to błąd średnio-kwadratowy. Zmienna \textit{kld} przechowuje obliczoną wartość dywergencji Kullbacka-Leiblera z wyprowadzonego wzoru \ref{equ:kld_loss}. Warstwę obliczająca stratę jest połączona z wejściem i wyjściem całego modelu, co umożliwia dostęp do wejścia ze zbioru danych oraz obrazów odkodowanych ze zmiennych ukrytych. 
 
 
 Posiadając warstwę obliczającą funkcje straty możemy stworzyć model. Podczas kompilacji nie podajemy parametru \textit{loss}, ponieważ został on już dodany w naszej niestandardowej warstwie. Z tego samego powodu w funkcji mającej dokonać treningu modelu nie przekazujemy danych, do których jest porównywany wynik autoenkodera.
@@ -681,6 +702,8 @@ Posiadając warstwę obliczającą funkcje straty możemy stworzyć model. Podcz
 	\includegraphics[width=\linewidth]{vaetrain.pdf}
 \end{figure}
 
+\chapter{Podsumowanie}
+Autoenkoder tradycyjny oraz wariacyjny są podobnymi modelami uczenia maszynowego. Składają się z dwóch części, enkodera, próbującego zakodować zmienne do kodu o określonej długości, oraz dekodera rekonstruującego kod do danych wejścia sieci. Wariacyjny autoenkoder, zamiast generować zmienne bezpośrednio, wybiera je z wielowymiarowego rozkładu normalnego na nauczonych parametrach. Jest to sposób na rozwiązanie problemów z generacją nowych danych tradycyjnego modelu. Oba modele posiadają szerokie zastosowanie w kompresji oraz odszumianiu danych i detekcji anomalii. Przewaga wariacyjnego autoenkodera, polega na jego umiejętności generacji danych, podobnych do tych, na których on został wytrenowany. 
 
 %\listoftables{} % jeśli są tabele
 %\addcontentsline{toc}{chapter}{Spis tabel}
@@ -690,5 +713,4 @@ Posiadając warstwę obliczającą funkcje straty możemy stworzyć model. Podcz
 
 \bibliographystyle{ieeetr}
 \bibliography{./cytowania/cytowania.bib}
-
 \end{document}
