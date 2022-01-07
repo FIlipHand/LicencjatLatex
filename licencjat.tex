@@ -25,6 +25,7 @@
 \usepackage{tikz}
 \usepackage{listofitems}
 \usepackage{etoolbox}
+\usepackage{listings}
 \usetikzlibrary{arrows.meta, fit, positioning} % for arrow size
 \usepackage[outline]{contour} % glow around text
 \contourlength{1.4pt}
@@ -135,13 +136,13 @@
 Wariacyjne autoenkodery są popularnymi modelami generacyjnymi. Zostały zaproponowane przez Diederika P Kingma i Maxa Wellinga w roku 2014.\cite{kingma2014autoencoding} Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują pobabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania ich przy pomocy metod gradientowych.
 \chapter{Tradycyjny autoenkoder} 
 \section{Informacje wstępne}
-Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście.\cite{bank2021autoencoders} Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaję te same dane. Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać:\\
+Autoenkoder jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście.\cite{bank2021autoencoders} Architektura enkodera wymaga aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottle neck}. Model na swoją warstwę wejściową oraz wyjściową dostaje te same dane. Powiedzmy że mamy dane wejściowe $X$ o wymiarze $m$ oraz chcemy je zakodować do wymiaru $n$. Formalnie możemy zapisać:\\
 \begin{center}
 	Enkoder $E: \mathbb{R}^m \rightarrow \mathbb{R}^n$\\
 	Dekoder $D: \mathbb{R}^n \rightarrow \mathbb{R}^m$ \\
 	gdzie $n < m$\\
 \end{center}
-Calem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy lub binarna entropia krzyżowa, która powie nam, jak wynik różni się od wejścia. 
+Celem \textit{bottle neck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$ model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi, a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy lub binarna entropia krzyżowa, która powie nam, jak wynik różni się od wejścia. 
  \begin{center}
  		$\mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2$
  \end{center}
@@ -428,6 +429,7 @@ Wariacyjny autoenkoder rozwiązuje problemy generacyjne tradycyjnego modelu. VAE
 		
 	\end{tikzpicture}
 	\caption{Sieć neuronowa budująca model VAE.}
+	\label{fig:vaenetwork}
 \end{figure}
 
 Sieć neuronowa budująca wariacyjny autoenkoder posiada dość nietypową budowę. Ostatnia ukryta warstwa enkodera łączy się z dwoma niepołączonymi ze sobą warstwami reprezentującymi średnią oraz odchylenie standardowe normalnej dystrybucji, której chcemy się nauczyć. Obie warstwy łączą się w jedną, która dokonuje operacji próbkowania z dystrybucji na nauczonych parametrach. Warstwy, reprezentujące średnią, odchylenie standardowe oraz zmienne ukryte muszą posiadać taką samą liczbę neuronów, reprezentującą długość wektora reprezentującego skompresowane dane.
@@ -440,7 +442,7 @@ Aby obliczyć rozkład marginalny $p(x)$ musimy policzyć:
 \begin{center}
 	$p(x) = \displaystyle\int_{z}^{}p(x|z)p(z)dz$
 \end{center}
-Obliczenie tej całki jest bardzo trudne lub nawet obliczeniowo nie możliwe w rozsądnym czasie, ponieważ $z$ jest często wielowymiarowym wektorem, a musimy całkować po wszystkich wymiarach. Aby próbować policzyć tę całkę w inny sposób możemy wybrać jedną z dwóch metod:
+Obliczenie tej całki jest bardzo trudne lub nawet obliczeniowo niemożliwe w rozsądnym czasie, ponieważ $z$ jest często wielowymiarowym wektorem, a musimy całkować po wszystkich wymiarach. Aby próbować policzyć tę całkę w inny sposób możemy wybrać jedną z dwóch metod:
 \begin{itemize}
 	\item próbkowanie Monte Carlo łańcuchami Markowa
 	\item wnioskowanie wariacyjne
@@ -476,7 +478,7 @@ Zapiszmy że:
 %	\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
 	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz$
 \end{center}
-Policzenie $q(z|x)$ jest proste, ponieważ sami dobieramy sobie jaką dystrybucją jest $q$. W naszym przypadku jest to rozkład normalny. Mimo to, obliczenia nie są możliwe, ponieważ natrafiamy znowu na problem wyznaczenia $p(z|x)$. Typ razem możemy przepisać:
+Policzenie $q(z|x)$ jest proste, ponieważ sami dobieramy sobie jaką dystrybucją jest $q$. W naszym przypadku jest to rozkład normalny. Mimo to, obliczenia nie są możliwe, ponieważ natrafiamy znowu na problem wyznaczenia $p(z|x)$. Tym razem możemy przepisać:
 \begin{center}
 	$p(z|x)=\dfrac{p(x,z)}{p(x)}$
 \end{center}
@@ -488,7 +490,7 @@ Własności logarytmów pozwalają nam zamienić iloczyn pod logarytmem na sumę
 \begin{center}
 	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)} + \log p(x)\right) dz$
 \end{center}
-Mnożąc $q(z|x)$ przez nawias, otrzymujemy sumę od całką, co możemy zapisać jako sumę dwóch całek. Następnie wartość $\log p(x)$ możemy wyłączyć przed całkę, ponieważ całkując po $z$ traktujemy ten logarytm jako stałą.
+Mnożąc $q(z|x)$ przez nawias, otrzymujemy sumę pod całką, co możemy zapisać jako sumę dwóch całek. Następnie wartość $\log p(x)$ możemy wyłączyć przed całkę, ponieważ całkując po $z$ traktujemy ten logarytm jako stałą.
 \begin{center}
 	$D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz + \log p(x)\underbrace{\displaystyle\int_{z}^{}q(z|x)dz}_{\text{$\alpha$}}$
 \end{center}
@@ -503,7 +505,7 @@ Na razie nie dokonaliśmy żadnych obliczeń, tylko przepisaliśmy wzór na dywe
 \end{center}
 Wartość $\log p(x)$ nosi nazwę dowodu, ponieważ mówi o prawdopodobieństwie otrzymania obserwacji $x$ przez nasz model.
 Parametr $-\mathcal{L}$ nazywamy dolną granicą dowodu \textit{Evidence Lower BOund, \textbf{ELBO}}. Nazwa pochodzi od własności, mówiącej o tym, że jej wartość jest zawsze mniejsza lub równa dowodowi. Własność ta, bierze się z faktu, że 
-dywergencja jest zawsze nieujemne a w naszym przypadku nawet dodatnia. 
+dywergencja jest zawsze nieujemna a w naszym przypadku nawet dodatnia. 
 \begin{center}
 	$\mathcal{L}\leq\log p(x)$
 \end{center}
@@ -537,9 +539,10 @@ Wariacyjny autoenkoder poruszany w pracy generuje zmienne ukryte z rozkładu nor
 	$\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}$
 \end{center}
 Co w naszym przypadku gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do:
-\begin{center}
-	$\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1$
-\end{center} 
+\begin{equation}
+	\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1
+	\label{equ:kld_loss}
+\end{equation} 
 gdzie D to długość wektora zmiennych ukrytych. Jest to pierwsza część naszej funkcji straty. 
 
 Druga część funkcji straty jest nazywana błędem rekonstrukcji. Możemy zastąpić wartość oczekiwaną wartością jednej próbki, ponieważ do trenowania wag modeli używamy metody gradientu stochastycznego. Aby uniknąć liczenia skompilowanych dystrybucji prawdopodobieństwa $\log p(x|z)$, gdzie poszczególne wymiary $x$ są zależne od siebie, liczymy proste rozkłady na każdym wymiarze osobno. Aby to osiągnąć używamy binarnej entropii krzyżowej. W praktyce często stosujemy również inne funkcje takie jak błąd średnio-kwadratowy, będący bardziej intuicyjnym rozwiązaniem.
@@ -617,8 +620,67 @@ Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zb
 
 
 \chapter{Implementacja}
-\section{Tensorflow oraz Keras}
-\lipsum[1]\cite{doersch2021tutorial}
+\section{TensorFlow oraz Keras}
+\subsection{Informacje ogóle}
+TensorFlow jest jedną z najbardziej popularnych bibliotek implementującą metody uczenia maszynowego. Twórcą projektu jest Google, które udostępniło je jako wolne oprogramowanie. Biblioteka jest dostępna dla wielu języków programowania, jednak najczęściej jest używana programując w języku Python. Programowanie bezpośrednio w TensorFlow wymaga wielu umiejętności, a kod jest mało czytelny, dla wielu osób. Problemy te rozwiązuje Keras, który jest nakładką na bibliotekę. 
+
+Keras również jest darmową i otwartą biblioteką, jednak jest tylko przeznaczona dla języka Python. Implementuje prosty i przejrzysty sposób tworzenia modeli oraz sieci neuronowych. Poza tradycyjnymi, głębokimi architekturami, możliwe jest tworzenie sieci rekurencyjnych oraz konwolucyjnych. Obie biblioteki wspierają rozproszone obliczenia na kartach graficznych. 
+
+W implementacji modeli AE i VAE, użyteczną biblioteką będzie NumPy. Jest to wolnych projekt, umożliwiający proste operacje na macierzach oraz wektorach. Jako biblioteka napisana w języku C, dokonuje o wiele szybszych operacji w porównaniu do tych, które wykonywane by były w czystym Pythonie. 
+
+Istnieje kilka możliwości implementacji tradycyjnego oraz wariacyjnego autoenkodera używając sieci gęstych, konwolucyjnych lub nawet rekurencyjnych takich jak LSTM (\textit{long short-term memory}). Każda z nich może nadać się do innych zbiorów danych, jednak wszystkie w kluczowych punktach działają w ten sam sposób. Wejście zostaje skompresowane do odpowiedniej długości kodu, a w przypadku autoenkoderów wariacyjnych do wielowymiarowego rozkładu normalnego. 
+\subsection{Implementacja w języku Python}
+Importujemy potrzebne klasy do implementacji obu modeli.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{importy.pdf}
+\end{figure}
+
+Następnie wczytujemy zbiór danych MNIST, który podzielony jest na część przeznaczoną do treningu oraz do testów. Implementując modele, nie będziemy korzystać z oznaczeń do jakiej klasy należą poszczególne dane, ponieważ oba modele na swoją warstwę wejściową, jak i wyjściową dostają te same obrazy. Aby nie było problemów z typem danych, zamieniamy wszystkie próbki na macierze, które przechowują dane w formacie float o długości 32 bitów. Następnie dane skalujemy do przedziału [0, 1] dzieląc każdy piksel każdego obrazka przez 255. Wiemy, że dane składają się z obrazów w skali szarości, i każdy piksel opisuje liczba z przedziału [0, 255], więc zwykłe dzielenie może zastąpić inne rozwiązania skalowania danych. Wyciągamy sobie również wysokość i szerokość obrazów.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{dane.pdf}
+\end{figure}
+\subsubsection{Autoenkoder}
+Tworząc model musimy zagwarantować odpowiednią architekturę. W tym przypadku używamy enkodera z dwiema warstwami ukrytymi, z czego pierwsza posiada 500 neuronów, a druga 120. Obraz jest kompresowany do kodu o długości 2. Architektura dekodera jest odbiciem lustrzanym enkodera. Funkcje aktywacji warstw ukrytych to ReLU \textit{Rectified Linear Unit}, które nie dość, że umożliwiają lepszą naukę sieci, to sprawia, że trening zajmuje mniej czasu.\cite{relu} Używamy funkcji liniowej w warstwie kodu, aby nie ograniczać wartości jakie poszczególne jego elementu mogą przyjąć. Funkcja sigmoidalna na wyjściu spłaszcza wyjście neuronu do przedziału [0, 1], czyli takiego samego w jakim występują nasze dane.\\
+Pierwsza warstwa wejściowa jest przeznaczona aby przyjmować dane o wymiarze takim jak nasze obrazy. Następnie warstwa \textit{Flatten} zamienia dwuwymiarowe wejście na jednowymiarowe. Kolejne warstwy łączą się w normalny sposób pomiędzy sobą. Ostatnia warstwa \textit{Reshape} dokonuje odwrotnej operacji co \textit{Flatten}, zamieniając jednowymiarowe wartości na macierz, która ma takie same wymiary co dane wejściowe, co umożliwia porównanie wyniku modelu do wejścia. Tworzymy cały model używając klasy \textit{Model}, podając pierwszą oraz ostatnią warstwę. W ten sposób wszystkie parametry są trenowane na raz. Stworzenie osobno enkodera nie jest problemem, ponieważ posiada on tą samą warstwę wejściową co cały model. Dekoder jest nieco problematyczny, ponieważ musimy stworzyć jego własną warstwę wejściową, a następnie połączyć z nią warstwy, modelu, tak aby korzystał z wytrenowanych parametrów. 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{modelae.pdf}
+\end{figure}
+
+Zanim zaczniemy trenować naszą sieć musimy sprecyzować funkcję straty oraz optymalizator. Funkcja użyta w tym przykładzie to błąd średnio-kwadratowy, który jest dobrym wyborem w przypadku obrazów. Optymalizator to algorytm znajdowania wag sieci, dla których funkcja straty jest jak najmniejsza, a co za tym idzie nasz model działa jak najlepiej. Wybraną metodą jest algorytm \textit{adam}, który jest pochodną stochastycznego gradientu, jednak obliczenia okupują mniej pamięci, jest prosty obliczeniowo oraz znajduje optymalne rozwiązanie szybciej niż tradycyjne podejście.\cite{adam} Jednym z jej twórców jest Diedrik Kingma, który również jako pierwszy zaproponował model wariacyjnego autoenkodera. Aby nie przetrenować modelu, dodajemy zbiór walidacyjny, który przejmuje 20\% danych treningowych. Walidacja służy nam do sprawdzenia na innych danych niż testowe i treningowe, czy model się nie przetrenował. W momencie, kiedy błąd na zbiorze walidacyjnym będzie rosnąć zamiast maleć przez 3 epoki, callback \textit{EarlyStopping} przerwie trening wag i przywróci wagi, dla których wynik był najlepszy.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{trainae.pdf}
+\end{figure}
+
+Po treningu modele są już gotowe go użytkowania. Aby dokonać przy ich pomocy obliczeń, wykonujemy funkcję \textit{predict}, do której podajemy odpowiednich wymiarów macierz. 
+\subsubsection{Wariacyjny autoenkoder}
+Zbiór danych przeznaczony dla wariacyjnego autoenkodera nie różni się w żaden sposób od pokazanego wyżej. 
+
+Implementacja modelu VAE jest nieco bardziej skomplikowana niż AE. Bierze się to jego budowy, która wymaga rozłączenia jednej warstwy na dwie niezależne przyłączone do tej samej co widać na obrazku \ref{fig:vaenetwork}. Warstwy reprezentujące średnią i odchylenie standardowe są połączone z ostatnią warstwą ukrytą. W naszym przypadku, traktujemy jedną warstwę jako logarytm z odchylenia standardowego, ponieważ jego wartość nie może być ujemna. Kiedy chcemy użyć zmiennych wystarczy że dokonamy na nich operacji \textit{exp}. Funkcja \textit{probka} dokonuje próbkowania z dystrybucji na nauczonych parametrach stosując opisaną wcześniej sztuczkę reparametryzacyjną. Zmienna \textit{eps} przechowuje wartości losowane z rozkładu normalnego i ich rozmiar jest równy ilości zmiennych ukrytych i wielkości partii danych \textit{batch size}. Na etapie tworzenia architektury modelu jeszcze nie znamy wielkości batch-a, więc używając metody \textit{shape} będziemy ją dynamicznie zmieniać w zależności od przekazanych parametrów. Dostępna w paczce Keras warstwa \textit{Lambda} pozwala nam wywołać wskazaną funkcję na wartościach neuronów. Warstwę łączymy z obiema wcześniejszymi warstwami na raz. Implementacja dekodera jest identyczna jak dla tradycyjnego autoenkodera. Funkcja strady modelu VAE nie jest możliwa do automatycznego policzenia tak jak zostało to pokazane w AE. Zmienna \textit{z$\_$odkodowane} będzie przechowywać obraz odkodowany ze zmiennych ukrytych, który będzie porównywany z tym przekazanym na wejście sieci.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{modelvae.pdf}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{vaeloss.pdf}
+\end{figure}
+
+\newpage
+Aby policzyć wartość funkcji straty tworzymy nową warstwę po ostatniej. Jej jedynym zadaniem jest policzenie straty i nie ma ona możliwych do trenowania parametrów. Pierwsza funkcja oblicza wartość funkcji, a druga pozwala jej policzenie i minimalizacje przez model. Aby porównać obrazy muszą być one w takich samych wymiarach co gwarantujemy przez wywołanie funkcji \textit{flatten} na prawdziwym i odkodowanym obrazie. Błąd rekonstrukcji wybrany w tym przykładzie to błąd średnio-kwadratowy. Zmienna \textit{kld} przechowuje obliczoną wartość dywergencji Kullbacka-Leiblera z wyprowadzonego wzoru \ref{equ:kld_loss}. Warstwę obliczająca stratę jest połączona z wejściem i wyjściem całego modelu, co umożliwia dostęp do wejścia ze zbioru danych oraz obrazów odkodowanych ze zmiennych ukrytych. 
+
+
+Posiadając warstwę obliczającą funkcje straty możemy stworzyć model. Podczas kompilacji nie podajemy parametru \textit{loss}, ponieważ został on już dodany w naszej niestandardowej warstwie. Z tego samego powodu w funkcji mającej dokonać treningu modelu nie przekazujemy danych, do których jest porównywany wynik autoenkodera.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{vaetrain.pdf}
+\end{figure}
+
 
 %\listoftables{} % jeśli są tabele
 %\addcontentsline{toc}{chapter}{Spis tabel}
