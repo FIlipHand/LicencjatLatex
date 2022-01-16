@@ -41,7 +41,7 @@
 	\begin{frame}
 		\frametitle{Autoenkoder}
 		\section{Autoenkoder}
-		Autoenkoder składa się z dwóch części: enkodera oraz dekodera. Obie z nich są w pełni połączonymi sieciami neuronowymi, które również są połączone pomiędzy sobą. Zadaniem enkodera jest zakodowanie jego wejścia do kodu o stałej długości, co jest osiągane przez architekturę warstw, w której każda następna ma mniej neuronów. Dekoder jest częścią, która z kodu, próbuje odwzorować zakodowane dane. Cały autoenkoder dostaje na warstwę wejściową oraz wyjściową te same dane, przez co jego sposób uczenia jest nazywany częściowo nadzorowanym. 
+		Autoenkoder składa się z dwóch części: enkodera oraz dekodera. Obie z nich są w pełni połączonymi sieciami neuronowymi, które również są połączone pomiędzy sobą. Zadaniem enkodera jest zakodowanie jego wejścia do kodu o stałej długości, co jest osiągane przez architekturę warstw, w której każda następna ma mniej neuronów niż poprzednia. Dekoder jest częścią, która z kodu, próbuje odwzorować zakodowane dane. Cały autoenkoder dostaje na warstwę wejściową oraz wyjściową te same dane, przez co jego sposób uczenia jest nazywany częściowo nadzorowanym. 
 	\end{frame}
 
 % 4
@@ -71,14 +71,14 @@
 	\begin{frame}
 		\frametitle{Problem generacji danych}
 		\subsection{Problem generacji danych}
-		Aby wygenerować nowe dane, podobne do tych na których model został wytrenowany, potrzebujemy ściśle określonej dystrybucji według której punkty, reprezentujące skompresowane wejście, są rozłożone. Tradycyjna architektura nie zapewnia nam tego faktu, ani takich wymagać jak kompletności oraz ciągłości przestrzeni kodu. 
+		Aby wygenerować nowe dane, podobne do tych na których model został wytrenowany, potrzebujemy ściśle określonej dystrybucji według której punkty, reprezentujące skompresowane wejście, są rozłożone. Tradycyjna architektura nie zapewnia nam tego faktu, ani takich wymagać jak kompletności oraz ciągłości przestrzeni kodu. Przed treningiem nie wiadomo czy losowo wybrany punkt z przestrzeni, będzie generował sensowne dane.
 	\end{frame}
 		
 % 7
 	\begin{frame}
 		\frametitle{Wariacyjny autoenkoder}
 		\section{Wariacyjny autoenkoder}
-		Wariacyjny autoenkoder rozwiązuje problemy z generacją nowych danych tradycyjnego modelu. Aby model był generacyjny, potrzebujemy ściśle ustalonej dystrybucji, z której losujemy punkty, na podstawie których generujemy dane. W przypadku modelu VAE, jest to wielowymiarowy rozkład normalny, opisywany za pomocą wektorów odchylenia standardowego $\sigma$ oraz średniej $\mu$. Następnie z tych dystrybucji losujemy punkty $z$, które traktujemy jako kod, na podstawie, których rekonstruujemy wejście modelu.
+		Wariacyjny autoenkoder rozwiązuje problemy z generacją nowych danych tradycyjnego modelu. Aby model był generacyjny, potrzebujemy ściśle ustalonej dystrybucji, z której losujemy punkty, na podstawie których generujemy dane. W przypadku modelu VAE, jest to wielowymiarowy rozkład normalny, opisywany za pomocą wektorów odchylenia standardowego $\sigma$ oraz średniej $\mu$. Następnie z tych dystrybucji losujemy punkty $z$, które traktujemy jako kod, na podstawie, których rekonstruujemy wejście modelu. Aby wynikiem enkodera były punkty należące do wybranej dystrybucji, trzeba zmodyfikować funkcję straty. Poza błędem rekonstrukcji, obliczamy również dywergencję Kullbacka-Leiblera, która określa rozbieżność pomiędzy dwora rozkładami prawdopodobieństwa. 
 	\end{frame}
 
 	\begin{frame}
