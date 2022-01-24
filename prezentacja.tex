@@ -23,10 +23,6 @@
 	\begin{frame}
 		\titlepage
 	\end{frame}
-
-	\begin{frame}
-		\tableofcontents
-	\end{frame}
 % 2
 	\begin{frame}
 		\frametitle{Cele}
@@ -79,7 +75,7 @@
 			\centering\includegraphics[width=10cm]{prawdziwyae.pdf}
 		\end{figure}
 		\vspace{-0.5cm}
-	Odszumianie obrazu zostało wykonane przy pomocy powyższego modelu, składającego się dwóch warstw ukrytych w enkoderze i dekoderze po 120 i 500 neuronów. Funkcje aktywacji to ReLU, poza warstwą kodu, w której jest funkcja liniowa aby nie ograniczać wartości kodu, i w ostatniej sigmoid, ponieważ dane wejściowe są w przedziale 0-1.
+	Odszumianie obrazu zostało wykonane przy pomocy powyższego modelu, składającego się dwóch warstw ukrytych w enkoderze i dekoderze po 120 i 500 neuronów. Funkcją aktywacji użytą w modelu jest ReLU, poza warstwą kodu, w której jest to funkcja liniowa aby nie ograniczać wartości kodu i w ostatniej sigmoid, ponieważ dane wejściowe są w przedziale 0-1.
 	\vspace{-0.5cm}
 	\end{frame}
 
@@ -107,7 +103,7 @@
 	\begin{frame}
 		\frametitle{Wariacyjny autoenkoder - wprowadzenie}
 		\section{Wariacyjny autoenkoder}
-		Wariacyjny autoenkoder rozwiązuje problemy z generacją nowych danych tradycyjnego modelu. Aby model był generacyjny, potrzebujemy ściśle ustalonej dystrybucji, z której losujemy punkty, na podstawie których generujemy dane. W przypadku modelu VAE, jest to wielowymiarowy rozkład normalny, opisywany za pomocą wektorów odchylenia standardowego $\sigma$ oraz średniej $\mu$. Następnie z tych dystrybucji losujemy punkty $z$, które traktujemy jako kod, na podstawie, których rekonstruujemy wejście modelu. Aby wynikiem enkodera były punkty należące do wybranej dystrybucji, trzeba zmodyfikować funkcję straty. Poza błędem rekonstrukcji, obliczamy również dywergencję Kullbacka-Leiblera, która określa rozbieżność pomiędzy dwora rozkładami prawdopodobieństwa. 
+		Wariacyjny autoenkoder rozwiązuje problemy z generacją nowych danych tradycyjnego modelu. Aby model był generacyjny, potrzeba ściśle ustalonej dystrybucji, z której losuje się punkty, na podstawie których generowane są dane. W przypadku modelu VAE, jest to wielowymiarowy rozkład normalny, opisywany za pomocą wektorów odchylenia standardowego $\sigma$ oraz średniej $\mu$. Następnie z tych dystrybucji losowane są punkty $z$ czyli kod, na podstawie, którego model dokonuje rekonstrukcji wejścia. Aby wynikiem enkodera były punkty należące do wybranej dystrybucji, trzeba zmodyfikować funkcję straty. Poza błędem rekonstrukcji, obliczana jest również dywergencję Kullbacka-Leiblera, która określa rozbieżność pomiędzy dwora rozkładami prawdopodobieństwa. 
 	\end{frame}
 
 \begin{frame}  
@@ -117,7 +113,7 @@
 			\includegraphics[height=5cm, width=5cm]{vaelatentspace.png}
 		\end{tabular}
 		& \begin{tabular}{l}
-			\parbox{0.5\linewidth}{Rysunek przestawia dwuwymiarową przestrzeń zmiennych ukrytych dla zbioru MNIST. Jest to przestrzeń wygenerowana przy pomocy modelu VAE, dlatego, jak widać, jest ona dwuwymiarowym rozkładem normalnym. Tym razem możemy wybrać z niej losowy punkt i mieć pewność, że zostanie on poprawnie odkodowany.
+			\parbox{0.5\linewidth}{Rysunek przestawia dwuwymiarową przestrzeń zmiennych ukrytych dla zbioru MNIST. Jest to przestrzeń wygenerowana przy pomocy modelu VAE, dlatego, jak widać, jest ona dwuwymiarowym rozkładem normalnym. Tym razem można wybrać z niej losowy punkt i mieć pewność, że zostanie on poprawnie odkodowany.
 			}
 		\end{tabular}  \\
 	\end{tabular}
@@ -150,7 +146,33 @@
 		\begin{figure}
 			\centering\includegraphics[width=12cm]{prawdziwyvae.pdf}
 		\end{figure}
-			Cos tutaj bedzie
+	\vspace{-0.7cm}
+	Generacja danych na podstawie zbioru MNIST odbyła się z użyciem powyższego modelu. Ilość neuronów w warstwach oraz funkcje aktywacji są takie same, jak w modelu AE przeznaczonym do odszumiania obrazów. Po treningu wystarczy na warstwę wejściową dekodera przekazań punkt losowo wybrany z pięciowymiarowej normalnej dystrybucji, przez co wynikiem modelu będzie nowy obraz.  
+	\end{frame}
+	\begin{frame}
+		\frametitle{Konwolucyjny wariacyjny autoenkoder}
+		\begin{figure}
+			\centering\includegraphics[width=10cm]{my_arch.pdf}
+		\end{figure}
+	Sieci konwolucyjne można wykorzystać w architekturze modelu VAE, który będzie przeznaczony do pracy ze skomplikowanymi obrazami. Powyższa architektura została wytrenowana na zbiorze danych twarzy celebrytów.
+	\end{frame}
+
+\begin{frame}  
+	\frametitle{Generacja twarzy}
+	\begin{tabular}{cl}  
+		\begin{tabular}{c}
+			\includegraphics[height=5cm, width=5cm]{generatedfaces.png}
+		\end{tabular}
+		& \begin{tabular}{l}
+			\parbox{0.5\linewidth}{Twarze zostały wygenerowane przy użyciu konwolucyjnego VAE. Jak widać na obrazie, model jest w stanie dość dobrze wygenerować podstawowe elementy twarzy jak oczy, nos, usta. W zależności od wylosowanych wartości, twarz może mieć uśmiech, zamknięte usta, różne odcienie koloru skóry lub koloru włosów.
+			}
+		\end{tabular}  \\
+	\end{tabular}
+\end{frame}
+
+	\begin{frame}
+		\frametitle{Podsumowanie}
+		Autoenkoder tradycyjny oraz wariacyjny są podobnymi modelami uczenia maszynowego. Składają się z dwóch części: enkodera próbującego zakodować zmienne do kodu o określonej długości oraz dekodera rekonstruującego kod do danych wejściowych. Wariacyjny autoenkoder, zamiast generować zmienne bezpośrednio, wybiera je z wielowymiarowego rozkładu normalnego. Jest to sposób na rozwiązanie problemów z generacją nowych danych tradycyjnego modelu. Porównując obie przestrzenie kodu, jasno widać, że model VAE, nauczył się generować zmienne ukryte według wybranej dystrybucji, która jest ciągła i kompletna. Dzięki temu, można wybrać z niej losowy punkt i na jego podstawie wygenerować nowe dane. 
 	\end{frame}
 
 	\begin{frame}
