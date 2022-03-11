@@ -131,11 +131,11 @@
 
 \chapter*{Wstęp} % z gwiazdką, więc bez numerka...
 \addcontentsline{toc}{chapter}{Wstęp} % ...ale w spisie treści ma być
-\textbf{Autoenkoder} jest jednym z rodzajów sieci neuronowych, której zadaniem jest nauczenie się zakodowania nieoznaczonych danych. Kod jest wykorzystywany do ponownego, jak najlepszego, wygenerowania wejścia sieci. Autoenkoder uczy się reprezentacji zbioru danych jako zmiennych ukrytych przez ignorowanie nieistotnych części danych.
+\textbf{Autoenkoder} jest jednym z rodzajów sieci neuronowych, której zadaniem jest nauczenie się zakodowania nieoznaczonych danych. Kod jest wykorzystywany do ponownego i jak najlepszego, wygenerowania wejścia sieci. Autoenkoder uczy się reprezentacji zbioru danych jako zmiennych ukrytych przez ignorowanie nieistotnych części danych.
 Wariacyjne autoenkodery są popularnymi modelami generacyjnymi. Zostały zaproponowane przez Diederika P. Kingma i Maxa Wellinga w roku 2014 \cite{kingma2014autoencoding}. Najczęściej zostają one skategoryzowane do modeli uczenia częściowo nadzorowanego. Znajdują zastosowanie w generacji obrazów, tekstu, muzyki oraz w detekcji anomalii. W przeciwieństwie do tradycyjnych autoenkoderów prezentują probabilistyczne podejście do generowania zmiennych ukrytych. Swoją popularność zawdzięcza swojej budowie, która jest oparta na sieciach neuronowych oraz możliwości trenowania ich przy pomocy metod gradientowych.
 \chapter*{Cel i zakres pracy}
 \addcontentsline{toc}{chapter}{Cel i zakres pracy}
-Celem pracy jest przegląd i ocena możliwości dwóch popularnych modeli uczenia maszynowego: tradycyjnego, oraz wariacyjnego autoenkodera. Oba modele, mimo podobieństwa w nazwie, różnią się budową oraz zastosowaniami. Jako modele kompresujące dane, są wykorzystywane do redukcji wymiarów, odszumiania danych oraz detekcji anomalii. Tradycyjna konstrukcja modelu, w przeciwieństwie do wariacyjnej, nie nadaje się do generacji danych takich jak obrazów lub ścieżek audio \cite{vaeaudio}. W pracy zostanie wytłumaczony ten problem i na podstawie matematycznych formuł wyprowadzona będzie struktura generacyjnego modelu. Dla obu modeli zostaną pokazane zastosowania, do których każdy model nadaje się najlepiej, oraz zostaną zaimplementowane w języku Python w bibliotece TensorFlow.
+Celem pracy jest przegląd i ocena możliwości dwóch popularnych modeli uczenia maszynowego: tradycyjnego, oraz wariacyjnego autoenkodera. Oba modele, mimo podobieństwa w nazwie, różnią się budową oraz zastosowaniami. Jako modele kompresujące dane, są wykorzystywane do redukcji wymiarów, odszumiania danych oraz detekcji anomalii. Tradycyjna konstrukcja modelu, w przeciwieństwie do wariacyjnej, nie nadaje się do generacji danych takich jak obrazów lub ścieżek audio \cite{vaeaudio}. W pracy zostanie wytłumaczony ten problem i na podstawie matematycznych formuł wyprowadzona będzie struktura generacyjnego modelu. Dla obu modeli przedstawiono ich typowe zastosowania oraz zostały zaimplementowane w języku Python w bibliotece TensorFlow.
 \chapter{Tradycyjny autoenkoder}
 \section{Informacje wstępne}
 Autoenkoder (AE) jest specyficzną wersją sieci neuronowej składającej się z dwóch części: enkodera, który koduje dane wejściowe oraz dekodera, który na podstawie kodu rekonstruuje wejście \cite{bank2021autoencoders}. Architektura enkodera wymaga, aby jego warstwa wyjściowa generująca reprezentacje danych była mniejsza niż warstwa wejściowa. Często zwężenie to jest nazywane \textit{bottleneck}. Model na swoją warstwę wejściową oraz wyjściową dostaje te same dane. Posiadając dane wejściowe $X$ o wymiarze $m$ oraz chcąc je zakodować do wymiaru $n$, można formalnie zapisać:
@@ -145,15 +145,20 @@ Autoenkoder (AE) jest specyficzną wersją sieci neuronowej składającej się z
 	Dekoder D: $\mathbb{R}^n \rightarrow \mathbb{R}^m$\\
 	gdzie $n < m$\\
 \end{center}
-Celem \textit{bottleneck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$, model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy zapisany w \ref{equ:aeloss} lub binarna entropia krzyżowa, która powie, jak wynik różni się od wejścia. 
+Celem \textit{bottleneck-a} jest skompresowanie wejścia i zachowanie w ukrytych wartościach jak najwięcej informacji. W momencie, kiedy $n = m$, model przekazałby wartości z pierwszej warstwy na ostatnią bez potrzeby kompresji. Celem treningu całego autoenkodera jest zminimalizowanie błędu pomiędzy prawdziwymi danymi wejściowymi a tymi odkodowanymi ze skompresowanych wartości. W przypadku obrazów funkcją straty może być na przykład błąd średniokwadratowy \ref{equ:aeloss} lub entropia krzyżowa \ref{equ:entropy}, która powie, jak wynik różni się od wejścia. 
  \begin{equation}
- 	\begin{aligned}
- 		 \mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 =\dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2\\[1ex]
- 		\text{gdzie $x$ jest wejściem, $\hat{x}$ jego rekonstrukcją, a $m$ wymiarem danych}
+ 		 \mathcal{L}(x, \hat{x}) = \dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-\hat{x}_i)^2 =\dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i-D(E(x_i)))^2
  		 \label{equ:aeloss}
- 	\end{aligned}
  \end{equation}
-Rysunek \ref{fig:aeschemat} \cite{bank2021autoencoders} pokazuje kompresje obrazu do wektora kodu, a następnie jego rekonstrukcje.
+ \begin{equation}
+	\mathcal{L}(x, \hat{x}) = -\dfrac{1}{m}\displaystyle\sum_{i=0}^{m}(x_i\log(\hat{x}_i) + (1 -x_i)\log(1-\hat{x}_i))
+	\label{equ:entropy}
+\end{equation}
+\begin{center}
+	gdzie $x$ jest wejściem, $\hat{x}$ jego rekonstrukcją, a $m$ wymiarem danych
+\end{center}
+Kompresje obrazy do wektora kodu, a następnie jego rekonstrukcje przedstawiono na rysunku \ref{fig:aeschemat} \cite{bank2021autoencoders}.
+
 
 \begin{figure}[h!]
 	\centering
@@ -190,7 +195,7 @@ Zbiór danych Modified National Institute of Standards and Technology (MNIST) je
 
 W pracy zbiór ten jest wykorzystywany w celu pokazania różnic w budowie i zastosowaniu tradycyjnych oraz wariacyjnych autoenkoderów, dlatego, że na obrazach łatwo zobaczyć zachowanie kompresji i rekonstrukcji. Cyfry są również bardzo łatwe do sklasyfikowania dla człowieka, przez co nowe, wygenerowane dane są proste do porównania z tymi, należącymi do zbioru danych.
 \newpage
-\section{Budowa}
+\section{Budowa autoenkoderów}
 W skład autoenkodera wchodzi enkoder oraz dekoder. Obie części są w pełni połączonymi sieciami neuronowymi, połączonymi również pomiędzy sobą. Prosta budowa sprawia, że bez problemu obie sieci są trenowane równocześnie.
 \begin{figure}[!h]
 \centering
@@ -240,20 +245,20 @@ W skład autoenkodera wchodzi enkoder oraz dekoder. Obie części są w pełni p
 	\node[above=0.5,align=center,myred!60!black] at (N\Nnodlen-1.90) {wyjście};
 	
 \end{tikzpicture}
-\caption{Wizualizacja sieci tworzącej autoenkoder}
+\caption{Wizualizacja sieci neuronowej tworzącej autoenkoder}
 \label{fig:aenetwork}
 \end{figure}\\
-Obrazek \ref{fig:aenetwork} \cite{tikzae} przedstawia prosty autoenkoder kompresujący sześciowymiarowe wejście do kodu o długości trzy. Enkoder, jak i dekoder mają dwie warstwy ukryte. Odbicie lustrzane architektury nie jest konieczne, aby model działał poprawnie, jednak zwyczajem jest używanie takiej architektury.\\
-Hiperparametramy modelu, które można ustalić przed jego treningiem to:
+Obrazek \ref{fig:aenetwork} \cite{tikzae} przedstawia prosty autoenkoder kompresujący sześciowymiarowe wejście do kodu o długości trzy. Enkoder, jak i dekoder posiadają dwie warstwy ukryte. Lustrzane odbicie architektury nie jest konieczne, jednak symetria jest typową propozycją architektury.\\
+Hiperparametrami modelu, które mogą zostać wybrane przed jego treningiem to:
 \begin{itemize}
-	\item Ilość warstw ukrytych - jeśli że nasze dane są skomplikowane, dodatkowe warstwy ukryte będą miały pozytywny wpływ na otrzymywane rezultaty, ponieważ większa ilość warstw sprawia, że model jest w stanie nauczyć się bardziej skomplikowanych funkcji \cite{telgarsky2016benefits, eldan2016power}.
-	\item Ilość neuronów w poszczególnych warstwach - autoenkoder powinien posiadać w każdej warstwie mniej neuronów niż w poprzedniej. W ten sposób model nie będzie ``oszukiwał" i zostaje zmuszony do reprezentacji jak najlepszej kompresji.
-	\item Funkcja straty - najlepszymi funkcjami straty do treningu autoenkodera jest błąd średniokwadratowy lub binarna entropia krzyżowa w przypadku, kiedy dane są w przedziale od 0 do 1.
+	\item Liczba warstw ukrytych - jeśli że dane są skomplikowane, dodatkowe warstwy ukryte będą miały pozytywny wpływ na otrzymywane rezultaty, ponieważ większa ilość warstw sprawia, że model jest w stanie nauczyć się bardziej skomplikowanych funkcji \cite{telgarsky2016benefits, eldan2016power}.
+	\item Liczba neuronów w poszczególnych warstwach - autoenkoder powinien posiadać w każdej warstwie mniej neuronów niż w poprzedniej. W ten sposób model nie będzie ``oszukiwał" i zostaje zmuszony do reprezentacji jak najlepszej kompresji.
+	\item Funkcja straty - najlepszymi funkcjami straty do treningu autoenkodera jest błąd średniokwadratowy \ref{equ:aeloss} lub probabilistyczne podejście do błędu używając entropii krzyżowej \ref{equ:entropy}.
 	\item Rozmiar kodu - jest to najistotniejszy parametr wybierany przed treningiem. Dłuższy kod oznacza zachowanie więcej istotnych elementów, a co za tym idzie lepsze odwzorowanie przez dekoder. Z drugiej strony, używając dłuższego wektora zmiennych ukrytych, dostaje się gorszą kompresje danych. Długość kodu trzeba dobrać w zależności od problemu, który będzie rozwiązywany przy pomocy modelu.
 \end{itemize}
-\section{Zastosowania}
+\section{Zastosowania autoenkoderów}
 \subsection{Redukcja wymiaru}
-Ilość otaczającej nas informacji, sprawia, że można z niej wyciągać coraz więcej ilości danych. Wiele z tych danych, takie jak obrazy, tekst czy nagrania są opisywane przez wiele parametrów. Redukcja wymiaru jest procesem zmniejszenia liczby zmiennych przeznaczonych do analizy, a zarazem zachowanie w nich jak najwięcej istotnych informacji. Powody, dla których proces zmniejszenia ilości wymiarów danych jest bardzo często wykorzystywane to między innymi:
+Ilość otaczających danych, sprawia, że można z nich wyciągać coraz więcej informacji. Wiele z tych danych, takie jak obrazy, tekst czy nagrania są opisywane przez wiele parametrów. Redukcja wymiaru jest procesem zmniejszenia liczby zmiennych przeznaczonych do analizy, a zarazem zachowanie w nich jak najwięcej istotnych informacji. Poniżej przedstawiono powody, dla których proces zmniejszenia ilości wymiarów danych jest bardzo często wykorzystywany.
 \begin{itemize}
 	\item Część zmiennych opisująca dane jest ze sobą nadmiernie skorelowana lub niesie ze sobą cechy, które nie są istotne statystycznie i usunięcie ich nie wpływa na poprawę działania modeli oraz czas ich treningu.
 	\item Dane bardzo wysokiego wymiaru są trudne do analizy lub operacje na nich zajmują tak dużo czasu i zasobów, co sprawia, że stają się one bezużyteczne. 
@@ -261,23 +266,24 @@ Ilość otaczającej nas informacji, sprawia, że można z niej wyciągać coraz
 \end{itemize}
 Autoenkoder nie jest jednym sposobem na redukcję wymiarów. Najbardziej rozpowszechnioną metodą jest \textit{PCA}. 
 \subsubsection{Analiza składowych głównych}
-Analiza składowych głównych (\textit{ang. Principal Components Analysis, \textbf{PCA}}) służy do wyznaczania jak najmniejszej ilości nowych zmiennych, mówiących jak najwięcej o zbiorze danych. Wielowymiarowe dane koncentrują się w pewnych podprzestrzeniach oryginalniej przestrzeni. Analiza PCA pozwala znaleźć te podprzestrzenie, które są wektorami pełniącymi rolę nowych osi, które lepiej opisują nasz zbiór danych \cite{redukcjawymiarow}. Omawiana metoda ogranicza się jedynie do przekształceń liniowych. Ilość wektorów, względem których można zredukować dane, jest równa wymiarowi danych. Obrazek b na rysunku \ref{fig:pca} przedstawia właśnie te wektory na przykładzie dwuwymiarowego zbioru punków. Linia, względem której spłaszczane są dane, jest tą, która minimalizuje odległość do niej od wszystkich punktów. Wykres c na rysunku \ref{fig:pca} pokazuje już zredukowane dane do jednego wymiaru. Nowe wektory są wybierane w taki sposób, aby wariancja rzutów poszczególnych obserwacji była jak największa, co gwarantuje nam odwzorowanie jak największej ilości danych. Każdy kolejny wektor zachowuję się w taki sam sposób oraz jest ortonormalny do poprzednich.
+Analiza składowych głównych (\textit{ang. Principal Components Analysis, \textbf{PCA}}) służy do wyznaczania jak najmniejszej ilości nowych zmiennych, mówiących jak najwięcej o zbiorze danych. Wielowymiarowe dane koncentrują się w pewnych podprzestrzeniach oryginalniej przestrzeni. Analiza PCA pozwala znaleźć te podprzestrzenie, które są wektorami pełniącymi rolę nowych osi, które lepiej opisują zbiór danych \cite{redukcjawymiarow}. Omawiana metoda ogranicza się jedynie do przekształceń liniowych. Ilość wektorów, względem których można zredukować dane, jest równa wymiarowi danych. Wykres b na rysunku \ref{fig:pca} przedstawia właśnie te wektory na przykładzie dwuwymiarowego zbioru punków zaznaczonych na wykresie a. Linia, względem której spłaszczane są dane, minimalizuje odległość do niej od wszystkich punktów. Wykres c na rysunku \ref{fig:pca} pokazuje już zredukowane dane do jednego wymiaru. Nowe wektory są wybierane w taki sposób, aby wariancja rzutów poszczególnych obserwacji była jak największa, co gwarantuje nam odwzorowanie jak największej ilości danych. Każdy kolejny wektor zachowuję się w taki sam sposób oraz jest ortonormalny do poprzednich.
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=\textwidth]{pca.pdf}
+	\includegraphics[width=15cm]{pca.pdf}
 	\caption{Wizualizacja PCA na zbiorze punktów w przestrzeni dwuwymiarowej}
 	\label{fig:pca}
 \end{figure}
 
-Wykres \ref{fig:pcacumsum} pokazuje zależność między ilością składników PCA a procentem wariancji opisywanym przez składniki na podstawie zbioru danych MNIST. Ilość składników mieści się w przedziale od 1 do 784 (28 razy 28 pixeli). Jak można zauważyć, dane reprezentowane przez około 80 wartości są w stanie opisać 90\% wariancji danych, co jest znaczą redukcją z 784. Przy 400 składnikach osiągnięto praktycznie 100\% pokrycia. 
+Wykres \ref{fig:pcacumsum} przedstawia zależność między ilością składników PCA a procentem wariancji opisywanym przez składniki na podstawie zbioru danych MNIST. Ilość składników mieści się w przedziale od 1 do 784 (28 razy 28 pixeli). Jak można zauważyć, dane reprezentowane przez około 80 wartości są w stanie opisać 90\% wariancji danych, co jest znaczą redukcją z 784. Przy 400 składnikach osiągnięto praktycznie 100\% pokrycia. 
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=\textwidth]{pcacumsum.pdf}
 	\caption{Procent wariancji opisywany przez ilość składników}
 	\label{fig:pcacumsum}
 \end{figure}
-\subsubsection{Autoenkoder}
-Użycie autoenkodera jest jedną z możliwości dokonania redukcji wymiarów. Jego budowa wymusza naukę jak najlepszej reprezentacji danych w kodzie. Zadaniem enkodera jest zachowanie w zmiennych jak najwięcej informacji dotyczących wejścia, a dekoder odwzorować jak najwięcej z nich. Najważniejszą cechą autoenkodera jest możliwość nauki przekształceń zarówno liniowych, jak i nieliniowych w zależności od doboru funkcji aktywacji. Różnicę pomiędzy oboma przekształceniami pokazano na rysunku \ref{fig:pcavsautoenkoder} \cite{nonlinearpca}.
+
+
+Użycie autoenkodera jest jedną z możliwości dokonania redukcji wymiarów. Jego budowa wymusza naukę jak najlepszej reprezentacji danych w zadanej długości kodu. Zadaniem enkodera jest zachowanie w zmiennych jak najwięcej informacji dotyczących wejścia, a dekoder odwzorować jak najwięcej z nich. Najważniejszą cechą autoenkodera jest możliwość nauki przekształceń zarówno liniowych, jak i nieliniowych w zależności od doboru funkcji aktywacji. Różnicę pomiędzy oboma przekształceniami pokazano na rysunku \ref{fig:pcavsautoenkoder} \cite{nonlinearpca}.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=10.5cm]{pictures/aelatentspace.png}
@@ -285,8 +291,8 @@ Użycie autoenkodera jest jedną z możliwości dokonania redukcji wymiarów. Je
 	\label{fig:latentspaceae}
 \end{figure}
 
-\subsubsection{Porównanie obu metod}
-Obie przedstawione metody redukowania wymiarów są bardzo dobrymi wyborami. Wybór jednej z nich powinien zostać dopasowany do potrzeb i do zbioru danych, który jest używamy. PCA, będąc ograniczone do jedynie liniowych przekształceń, jest szybsze niż autoenkoder, który wymaga treningu \cite{aevspca2}. Jest ono też lepszym wyborem, kiedy nasze dane są nadmiernie skorelowane. Rozpatrując przykład zbioru danych opisującego takie cechy ludzi, jak wzrost, waga, kolor oczu oraz długość włosów, oczywiste jest, że czyjaś waga jest zależna od wzrostu. PCA w takim przykładzie bez problemu odnajdzie tą zależność i zredukuje. Autoenkoder jest lepszym wyborem, kiedy dane są o wiele bardziej złożone, czyli obrazy lub pliki audio.  
+\subsubsection{Analiza zastosowanych metod}
+Przedstawione metody są często wykorzystywane w problemach redukowania wymiarów. Wybór jednej z nich powinien zostać dopasowany do potrzeb i do zbioru danych, który jest używamy. PCA, będąc ograniczone do jedynie liniowych przekształceń, jest szybsze niż autoenkoder, który wymaga treningu \cite{aevspca2}. Jest ono też lepszym wyborem, kiedy dane są nadmiernie skorelowane. Rozpatrując przykład zbioru danych opisującego takie cechy ludzi, jak wzrost, waga, kolor oczu oraz długość włosów, oczywiste jest, że czyjaś waga jest zależna od wzrostu. PCA w takim przykładzie bez problemu odnajdzie tą zależność i zredukuje. Autoenkoder jest lepszym wyborem, kiedy dane są o wiele bardziej złożone, czyli obrazy lub pliki audio.  
 Jednowarstwowy autoenkoder z liniową funkcją aktywacji na każdej warstwie zachowuje się dokładnie tak samo jak PCA \cite{aevspca}.
 \begin{figure}[h!]
 	\centering
@@ -321,24 +327,24 @@ Rysunek \ref{fig:lukaae} przedstawia drugie podejście.
 \end{figure}
 
 \section{Problemy z generacją nowych danych}
-Dobrym pytaniem jest, czy przy pomocy kodu można generować nowe dane podobne do tych, na których model został wytrenowany. Wiadomo, że sieć po treningu, jest w stanie ze zmiennych ukrytych odkodować obraz, więc ustawiając wejście dekodera na losowy punkt z przestrzeni zmiennych, powinno się dostać obraz, który jest podobny do tych, na których sieć została wytrenowana.
+ Sieć neuronowa budująca dekoder, po treningu, jest w stanie ze zmiennych ukrytych odkodować zakodowany obraz. Ustawiając wejście dekodera na losowy punkt z przestrzeni zmiennych generowanych przez enkoder, powinno się otrzymać obraz, który jest podobny do tych, na których cała sieć została wytrenowana.
 Aby model mógł generować nowe dane, muszą zostać spełnione dwa warunki:
 \begin{itemize}
-	\item Nasza przestrzeń kodu (tzw. zmiennych ukrytych) musi być ciągła, co znaczy, że dwa punkty znajdujące się obok siebie będą dawać podobne dane kiedy zostaną odkodowane.
+	\item Przestrzeń kodu (tzw. zmiennych ukrytych) musi być ciągła, co znaczy, że dwa punkty znajdujące się obok siebie będą dawać podobne dane kiedy zostaną odkodowane.
 	\item Przestrzeń musi być kompletna, co znaczy, że punkty wzięte z dystrybucji muszą dawać wyniki mające sens.
 \end{itemize}
-Tradycyjna architektura nie zapewnia przed treningiem żadnego z tych warunków. W dodatku nie znamy jaka jest dystrybucja według, której enkoder wybiera zmienne. Spoglądając na rysunek \ref{fig:latentspaceae}, widzimy, że przestrzeń zawiera luki. Szczególnie dobrze to widać między klasami oznaczającymi jedynki oraz siódemki. Kolejnym problemem widocznym na tej grafice jest brak separacji między klasami. Niektóre z nich są dobrze odseparowane od siebie, jednak inne całkowicie na siebie nachodzą, jak siódemki z dziewiątkami czy trójki z piątkami. Zadaniem modelu jest jak najlepsze odzwierciedlenie skompresowanych danych, a nie dbanie o to, czy rozkład zmiennych kodu spełnia przedstawione warunki. Może się tak zdarzyć, że sieć nauczy się akurat takiej dystrybucji, która pasuje, ale jest to bardzo mało prawdopodobne. Chcąc zbudować model generacyjny, trzeba mieć zagwarantowane, że za każdym razem rozkład będzie spełniał odpowiednie warunki.
+Tradycyjna architektura nie zapewnia przed treningiem żadnego z tych warunków. W dodatku nie znamy jaka jest dystrybucja według, której enkoder wybiera zmienne.Na rysunku \ref{fig:latentspaceae}, widać, że przestrzeń zawiera niezdefiniowane punkty. Szczególnie dobrze to widać między klasami oznaczającymi cyfry jeden oraz siedem. Zadaniem modelu jest jak najlepsze odzwierciedlenie skompresowanych danych, a nie zapewnienie czy rozkład zmiennych kodu spełnia przedstawione warunki. Może się zdarzyć, że sieć nauczy się akurat takiej dystrybucji, która pasuje, jednak jest to bardzo mało prawdopodobne. Chcąc zbudować model generacyjny, trzeba posiadać gwarancję, że za każdym razem rozkład będzie spełniał odpowiednie warunki.
 \section{Wnioski}
-Autoenkoder, jako zwyczajna sieć neuronowa o zwężonej budowie, najlepiej sprawdza się w problemach, w których zależy nam na kompresji i rekonstrukcji danych. Kompresja wejścia modelu do kodu, pozwala na zachowanie tylko najistotniejszych elementów, na podstawie których, będzie można zrekonstruować je jak najlepiej. Zadania opierające się na tym procesie to między innymi: redukcja wymiarów, usuwanie szumu czy detekcji anomalii. Każdy ten przykład, opiera się na tej samej zasadzie działania polegającej na kompresji. Model porównując ze sobą dane wejściowe oraz te, które pochodzą z warstwy wyjściowej, jest w stanie po wielu epokach treningu zacząć generalizować, co pozwala na ignorowanie elementów, które są nieistotne w odtwarzaniu danych wejściowych. Enkoder tradycyjnego autoenkodera, nie kontroluje według jakiej dystrybucji rozłożona jest przestrzeń kodu. Chcąc wygenerować nowe dane, nie wiadomo, które jej punkty będą w stanie wygenerować podobne dane, ponieważ przestrzeń kodu może posiadać luki.
+Autoenkodery, jako zwyczajne sieci neuronowe o zwężonej budowie, najlepiej sprawdzają się w problemach kompresji i rekonstrukcji danych. Kompresja wejścia modelu do kodu, pozwala na zachowanie tylko najistotniejszych elementów, na podstawie których, będzie można zrekonstruować je jak najlepiej. Zadania opierające się na tym procesie to między innymi: redukcja wymiarów, usuwanie szumu czy detekcji anomalii. Każdy ten przykład, opiera się na tej samej zasadzie działania polegającej na kompresji. Model porównując ze sobą dane wejściowe oraz te, które pochodzą z warstwy wyjściowej, jest w stanie po wielu epokach treningu zacząć generalizować, co pozwala na ignorowanie elementów, które są nieistotne w odtwarzaniu danych wejściowych. Enkoder tradycyjnego autoenkodera, nie kontroluje według jakiej dystrybucji rozłożona jest przestrzeń kodu. Chcąc wygenerować nowe dane, nie wiadomo, które jej punkty będą w stanie wygenerować podobne dane, ponieważ przestrzeń kodu może posiadać przestrzenie niezdefiniowane.
  
-\chapter{Wariacyjny autoenkoder}
-\section{Informacje ogóle}
+\chapter{Autoenkodery wariacyjne}
+\section{Informacje ogólne}
 Wariacyjny autoenkoder (VAE) rozwiązuje problemy generacyjne tradycyjnego modelu. VAE ma na celu skompresowanie danych do określonego wielowymiarowego rozkładu ukrytego, a następnie z próbki tej dystrybucji próbuje jak najlepiej zrekonstruować wejście. Model ten należy go grupy wariacyjnych metod Bayesowskich, czemu zawdzięcza swoją nazwę. Dystrybucjami najczęściej wybieranymi do reprezentacji zmiennych ukrytych są rozkłady normalne. Rozkład normalny jest opisywany przy pomocy dwóch wartości: średnia, która oznaczana jest znakiem $\mu$ oraz odchylenie standardowe oznaczane $\sigma$. Jeśli dane zostaną skompresowane do kodu o długości $n$, enkoder wygeneruje dwa wektory $n$-wymiarowe, z którego jeden będzie przechowywał wartości średniej, a drugi odchylenia standardowego dla każdego z $n$ rozkładów normalnych co przedstawia rysunek \ref{fig:vaeschemat} \cite{vaetootorial}.
 \begin{figure}[h!]
 	\centering
 	\begin{tikzpicture}
-		\node (true) at (-7, 0) {\includegraphics[width=2.5cm]{vaeorg1.png}};
-		\draw[thick] (-4.8, 1) -- (-4.8, -1) node[pos=0.5] (enkoderin){} -- (-3.7, -0.6) -- (-3.7, 0.6) node[pos=0.5] (enkoderout){} -- cycle;
+		\node (true) at (-6.5, 0) {\includegraphics[width=2.5cm]{vaeorg1.png}};
+		\draw[thick] (-4.6, 1) -- (-4.6, -1) node[pos=0.5] (enkoderin){} -- (-3.5, -0.6) -- (-3.5, 0.6) node[pos=0.5] (enkoderout){} -- cycle;
 		\draw[-latex, thick] (true.east) -- (enkoderin.west);                                                                                 
 		\node[scale=0.7](meanv) at (-2.5, 0) {\(\begin{bmatrix}                                                                                
 		1.88 \\ 1.24 \\ \vdots \\ 2.09 \\ 2.18                                                                                        
@@ -355,26 +361,26 @@ Wariacyjny autoenkoder (VAE) rozwiązuje problemy generacyjne tradycyjnego model
 				1.28 \\ 1.87 \\ \vdots \\ 2.01 \\ 2.28
 			\end{bmatrix}\)};
 		\draw[-latex, thick] (nv.east) -- (sample.west);
-				\draw[thick] (3.7, 0.6) -- (3.7, -0.6) node[pos=0.5] (dekoderin){} -- (4.8, -1) -- (4.8, 1) node[pos=0.5] (dekoderout){} -- cycle;
-		\node (recon) at (7, 0) {\includegraphics[width=2.5cm]{vaerec1.png}};
+				\draw[thick] (3.5, 0.6) -- (3.5, -0.6) node[pos=0.5] (dekoderin){} -- (4.6, -1) -- (4.6, 1) node[pos=0.5] (dekoderout){} -- cycle;
+		\node (recon) at (6.5, 0) {\includegraphics[width=2.5cm]{vaerec1.png}};
 		\draw[-latex, thick](sample.east) -- (dekoderin.west);
 		\draw[-latex, thick](dekoderout.east) -- (recon.west);
 		% Labels
-		\node at (-7, -1.5) {wejście};
-		\node at (7, -1.5) {wyjście};
+		\node at (-6.5, -1.5) {wejście};
+		\node at (6.5, -1.5) {wyjście};
 		\node at (-2.5, -1.5) {$\mu$};
 		\node at (-1.5, -1.5) {$\sigma$};
 		\node at (2.5, -1.5) {$z$};
 		\node at (0.5, -1.5) {dystrybucje};
-		\node at (-4.25, -1.5) {enkoder};
-		\node at (4.25, -1.5) {dekoder};
+		\node at (-4.05, -1.5) {enkoder};
+		\node at (4.05, -1.5) {dekoder};
 
 	\end{tikzpicture}
 	\caption{Schemat budowy wariacyjnego autoenkodera}
 	\label{fig:vaeschemat}
 \end{figure}
-
- Ograniczając enkoder do nauki wyłącznie tej dystrybucji, z której losuje zmienne ukryte, na podstawie których rekonstruuje on obrazy, zapewnia się gładką oraz ciągłą dystrybucje zmiennych losowych. Dekoder patrząc na obraz wyjściowy i porównując go z prawdziwym, nauczy się odkodowywać niedaleko oddalone od siebie punkty z rozkładu w bardzo podobny sposób.
+ 
+ Rozkład normalny spełnia warunki, potrzebne dla modelu generacyjnego. Jego ciągłość i kompletność sprawia, że dekoder patrząc na obraz wyjściowy i porównując go z prawdziwym, nauczy się odkodowywać niedaleko oddalone od siebie punkty należące do opisywanej dystrybucji w bardzo podobny sposób.
 
 \begin{figure}[h!]
 	\centering
@@ -461,13 +467,13 @@ Wariacyjny autoenkoder (VAE) rozwiązuje problemy generacyjne tradycyjnego model
 		\node[above=0.1 of decoder-3-1,myred!60!black] {wyjście};
 		
 	\end{tikzpicture}
-	\caption{Sieć neuronowa budująca model VAE}
+	\caption{Sieć neuronowa tworząca VAE}
 	\label{fig:vaenetwork}
 \end{figure}
 
-Sieć neuronowa budująca wariacyjny autoenkoder posiada dość nietypową budowę. Ostatnia ukryta warstwa enkodera łączy się z dwiema niepołączonymi ze sobą warstwami reprezentującymi średnią oraz odchylenie standardowe normalnej dystrybucji, której enkoder chce się nauczyć. Obie warstwy łączą się w jedną, która dokonuje operacji próbkowania z dystrybucji na nauczonych parametrach. Warstwy reprezentujące średnią, odchylenie standardowe oraz zmienne ukryte muszą posiadać taką samą liczbę neuronów, przedstawiającą długość wektora reprezentującego skompresowane dane.
-\section{Matematyczny opis modelu}
-Model VAE mimo swojego podobieństwa do tradycyjnego autoenkodera znacznie różni się w opisie matematycznym. Największe różnice są obserwowane w zachowaniu enkodera. Kod, który on produkuje, nazywany jest wartościami ukrytymi, ponieważ śą one wnioskowane na podstawie każdej danej. Trenując tradycyjny model, nie interesuje nas dystrybucja $p(z|x)$, z której pochodzą zmienne. Enkoder wariacyjnego autoenkodera jest, jak już zostało powiedziane, zobowiązany do nauki dystrybucji naszego wyboru. Wyrażenie $p(z|x)$ jest rozumiane jako dystrybucja generująca zmienne ukryte na podstawie przedstawionej danej $x$. Trzeba policzyć ten rozkład. Twierdzenie Bayesa mówi, że:
+Sieć neuronowa budująca wariacyjny autoenkoder posiada dość nietypową budowę. Ostatnia ukryta warstwa enkodera łączy się z dwiema niepołączonymi ze sobą warstwami reprezentującymi średnią oraz odchylenie standardowe normalnej dystrybucji, której enkoder chce się nauczyć. Obie warstwy łączą się w jedną, która dokonuje losowania punktu z dystrybucji na nauczonych parametrach. Warstwy reprezentujące średnią $\mu$, odchylenie standardowe $\sigma$ oraz zmienne ukryte $z$ muszą posiadać taką samą liczbę neuronów, przedstawiającą długość wektora reprezentującego skompresowane dane.
+\section{Matematyczna definicja VAE}
+Wariacyjny autoenkoder mimo swojego podobieństwa do tradycyjnego modelu znacznie różni się w opisie matematycznym. Największe różnice są obserwowane w definicji enkodera. Kod, który on produkuje, nazywany jest wartościami ukrytymi, ponieważ są one wnioskowane na podstawie każdej danej. Trenując tradycyjny model, nie jest istotna dystrybucja $p(z|x)$, z której pochodzą zmienne. Enkoder wariacyjnego autoenkodera jest, jak już zostało powiedziane, zobowiązany do nauki konkretnej dystrybucji. Wyrażenie $p(z|x)$ jest rozumiane jako dystrybucja generująca zmienne ukryte na podstawie przedstawionej danej $x$. Należy wyznaczyć ten rozkład. Używając twierdzenie Bayesa wiadomo że:
 \begin{equation}
 	p(z|x)=\dfrac{p(x|z)p(z)}{p(x)}
 	\label{bayes}
@@ -483,12 +489,11 @@ Obliczenie tej całki jest bardzo trudne lub nawet obliczeniowo niemożliwe w ro
 	\item wnioskowanie wariacyjne.
 \end{itemize}
 Przestrzeń przeszukiwań może być kombinatorycznie za duża, aby korzystać z pierwszej metody lub błąd przybliżenia tej całki będzie za duży w przypadku znacznej ilości wymiarów \cite{salimans2015markov}.
-%\textit{citation needed :(} \\
 
 \section{Wnioskowanie wariacyjne}
-Wnioskowanie wariacyjne pozwala zastąpić jedną dystrybucje, o której nie wiadomo za dużo i trudno z nią pracować na taką, jaka pasuje do problemu oraz dobrze odzwierciedla początkową \cite{variationalinference}. Używając tej metody, uda się rozwiązać problem policzenia rozkładu $p(z|x)$. Zastąpiony będzie rozkładem $q$, który jak najlepiej odwzoruje oryginalny rozkład. 
+Wnioskowanie wariacyjne pozwala zastąpić jedną dystrybucje, która nie jest bezpośrednio znana na taką, jaka pasuje do problemu oraz dobrze odzwierciedla rozkład początkowy \cite{variationalinference}. Używając tej metody, uda się rozwiązać problem wyznaczenia rozkładu $p(z|x)$. Zastąpiony będzie rozkładem $q$, który jak najlepiej odwzoruje oryginalny rozkład. 
 
-Wykres \ref{fig:app} przedstawia dwie krzywe. Pomarańczowa krzywa, opisująca rozkład normalny w bardzo dobry sposób, przybliża prawdziwą dystrybucję.
+Wykres \ref{fig:app} przedstawia dwie krzywe. Pomarańczowa krzywa, opisująca rozkład normalny, w optymalny sposób zastępuje prawdziwą dystrybucję oznaczoną kolorem niebieskim.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=12cm]{approximate.pdf}
@@ -497,7 +502,7 @@ Wykres \ref{fig:app} przedstawia dwie krzywe. Pomarańczowa krzywa, opisująca r
 \end{figure} 
 
 \subsection{Dywergencja Kullbacka-Leiblera}
-Aby być w stanie zminimalizować błąd pomiędzy prawdziwą a zamienną dystrybucją, należy posiadać miarę, która określa rozbieżność między dwoma rozkładami prawdopodobieństwa. Miarą tą jest dywergencja Kullbacka-Leiblera ($D_{KL}$). Podstawowymi jej własnościami są:
+Aby zminimalizować błąd pomiędzy prawdziwą a zamienną dystrybucją, należy posiadać miarę, która określa rozbieżność między dwoma rozkładami prawdopodobieństwa. Miarą tą jest dywergencja Kullbacka-Leiblera ($D_{KL}$). Podstawowymi jej własnościami są:
 \begin{itemize}
 	\item jej wartość jest nieujemna; $D_{KL}(P\|Q)) \geq 0$. Miara przyjmuje wartość 0 tylko w przypadku kiedy $P$ i $Q$ są identycznymi dystrybucjami.
 	\item miary tej nie można określić mianem metryki, ponieważ nie jest symetryczna ($D_{KL}(P\|Q)\neq D_{KL}(Q\|P)$);
@@ -509,12 +514,12 @@ Celem jest zminimalizowanie błędu, co sprawi, że rozkład $q(z|x)$ będzie ja
 \end{equation}
 gdzie $Q$ to rodzina prostych dystrybucji, na przykład rozkładów Gaussa.
 \subsection{Dolna granica dowodów}
-Wzór na dywergencję jest zapisywany jako:
+Dywergencja jest określana jako:
 \begin{equation}
 	D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z|x)}dz
 	\label{kld1}
 \end{equation}
-Policzenie $q(z|x)$ jest proste, ponieważ sami dobieramy, jaką dystrybucją jest $q$. Dal modelu VAE najczęściej jest to rozkład normalny. Mimo to, obliczenia nie są możliwe, ponieważ znowu występuje problem wyznaczenia $p(z|x)$. Tym razem można przepisać:
+Wyznaczenie $q(z|x)$ jest proste, ponieważ sami dobieramy, jaką dystrybucją jest $q$. Dla modelu VAE najczęściej jest to rozkład normalny. Mimo to, obliczenia nie są możliwe, ponieważ znowu występuje problem wyznaczenia $p(z|x)$. Tym razem można przepisać:
 \begin{equation}
 	p(z|x)=\dfrac{p(x,z)}{p(x)}
 	\label{bayesinaczej}
@@ -524,36 +529,32 @@ Podstawiając zapisaną inaczej wartość $p$ do wzoru na dywergencję otrzymuje
 	D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(x,z)}p(x)dz
 	\label{kldlogarytmy}
 \end{equation}
-Własności logarytmów pozwala zamienić iloczyn pod logarytmem na sumę w następujący sposób:
+Własności logarytmów pozwalają zamienić iloczyn pod logarytmem na sumę w następujący sposób:
 \begin{equation}
 	D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)} + \log p(x)\right) dz
 	\label{kldcalka}
 \end{equation}
-Mnożąc $q(z|x)$ przez nawias, otrzymaną sumę pod całką, można zapisać jako sumę dwóch całek. Następnie wartość $\log p(x)$ jest wyłączana przed całkę, ponieważ całkując po $z$, jest on traktowany jako stała.
+Mnożąc $q(z|x)$ przez nawias, otrzymaną sumę pod całką, można zapisać jako sumę dwóch całek. Następnie wartość $\log p(x)$ jest wyłączana przed całkę, ponieważ całkując po $z$, jest ona traktowana jako stała.
 \begin{equation}
 	D_{KL}(q(z|x)\|p(z|x))=\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz + \log p(x)\underbrace{\displaystyle\int_{z}^{}q(z|x)dz}_{\text{$\alpha$}}
 	\label{calkaalpha}
 \end{equation}
-Wartość całki zaznaczonej jako $\alpha$ jest równa 1, dlatego, że $q$ jest funkcją dystrybucji prawdopodobieństwa, a warunek $z|x$ nie ma znaczenia, ponieważ całka jest liczona po $z$.
+Wartość całki oznaczonej jako $\alpha$ jest równa 1, dlatego, że $q$ jest funkcją dystrybucji prawdopodobieństwa oraz jest ona liczona po wszystkich zmiennych $z$.
 \begin{equation}
 	D_{KL}(q(z|x)\|p(z|x))=\underbrace{\displaystyle\int_{z}^{}q(z|x)\left( \log\frac{q(z|x)}{p(x,z)}\right)dz}_{\text{$\mathcal{L}$}} + \log p(x)
 	\label{kldfinal}
 \end{equation}
-Na razie nie dokonano żadnych obliczeń, jedynie przepisano wzór na dywergencję.
-%\begin{center}
-%	$D_{KL}(q(z|x)\|p(z|x))= \mathcal{L} + \log p(x)$\\
-%	$-\mathcal{L} = \log p(x) - D_{KL}(q(z|x)\|p(z|x))$
-%\end{center}
+Wyprowadzony wzór można przepisać w następujący sposób:
 \begin{equation}\label{elbo}
 	\begin{array}{rcl}
 		D_{KL}(q(z|x)\|p(z|x))= \mathcal{L} + \log p(x)\\[1ex]
 	-\mathcal{L} = \log p(x) - D_{KL}(q(z|x)\|p(z|x))
 	\end{array}
 \end{equation}
-Wartość $\log p(x)$ nosi nazwę dowodu, ponieważ mówi o prawdopodobieństwie otrzymania obserwacji $x$ przez nasz model.
+Wartość $\log p(x)$ nosi nazwę dowodu, ponieważ mówi o prawdopodobieństwie otrzymania obserwacji $x$ przez model.
 Parametr $-\mathcal{L}$ jest nazywany dolną granicą dowodu \textit{Evidence Lower BOund, \textbf{ELBO}}. Nazwa pochodzi od własności, mówiącej o tym, że jej wartość jest zawsze mniejsza lub równa dowodowi. Własność ta bierze się z faktu, że dywergencja jest zawsze nieujemna.
 \begin{center}
-	$\mathcal{L}\leq\log p(x)$
+	$-\mathcal{L}\leq\log p(x)$
 \end{center}
 Wartość dowodu jest stała dla podanego $z$, więc problem minimalizacji dywergencji można zapisać jako:
 \begin{equation}
@@ -569,7 +570,7 @@ Korzystając z twierdzenia Bayesa zapisanego w \ref{bayesinaczej} można przepis
 		\label{equ:kldlogagn}
 	\end{aligned}
 \end{equation}
-Wykorzystując kolejny raz własności logarytmów, zapisujemy:
+Wykorzystując kolejny raz własności logarytmów, przekształcono:
 \begin{equation}
 	\mathcal{L}=\displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(z)}dz - \displaystyle\int_{z}^{}q(z|x)\log\frac{q(z|x)}{p(x|z)}dz
 	\label{equ:elbolog}
@@ -585,12 +586,12 @@ Pierwsze wyrażenie reprezentuje odległość pomiędzy dystrybucją zastępują
 
 Enkoder, jak i dekoder są zapisywane jako rozkłady prawdopodobieństwa. Funkcja $q(z|x)$ mówi, jakie zmienne ukryte $z$ reprezentują daną $x$, natomiast $p(x|z)$ generuje dane na podstawie otrzymanego kodu. $q(z|x)$ jest dystrybucją enkodera, a $p(x|z)$ dekodera.
 
-Wariacyjny autoenkoder poruszany w pracy generuje zmienne ukryte z rozkładu normalnego $p(z)=\mathcal{N}(0,\textit{\textbf{I}})$. Przepuszczając wszystkie nasze dane $x$ przez enkoder, wiemy, że próbkowane wartości przekazywane następnie do dekodera będą rozłożone normalnie. Rozwiązuje to problem tradycyjnego autoenkodera, którego zmienne ukryte są rozrzucone w sposób, który nie jest znany przed treningiem. Znając już dystrybucję, można policzyć dywergencję pomiędzy dwoma rozkładami normalnymi.
+Wariacyjny autoenkoder poruszany w pracy generuje zmienne ukryte z rozkładu normalnego $p(z)=\mathcal{N}(0,\textit{\textbf{I}})$. Przepuszczając wszystkie dane $x$ przez enkoder, wiemy, że próbkowane wartości przekazywane następnie do dekodera będą rozłożone normalnie. Rozwiązuje to problem tradycyjnego autoenkodera, którego zmienne ukryte są rozrzucone w sposób, który nie jest znany przed treningiem. Znając już dystrybucję, można policzyć dywergencję pomiędzy dwoma rozkładami normalnymi.
 \begin{equation}
 	\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\left\{\left(\dfrac{\sigma_0}{\sigma_1}\right)^2+\dfrac{(\mu_1 - \mu_0)^2}{\sigma_1^2} - 1 + 2\log\dfrac{\sigma_1}{\sigma_0}\right\}
 	\label{equ:kldnormals}
 \end{equation}
-W naszym przypadku, gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do \cite{kingma2014autoencoding}:
+W przypadku, gdzie $\mu_1 = 0$ oraz $\sigma_1=1$ uprości się do \cite{kingma2014autoencoding}:
 \begin{equation}
 	\dfrac{1}{2}\displaystyle\sum_{D}^{i=1}\sigma_i^2+\mu_i^2-2\log(\sigma_i)-1
 	\label{equ:kld_loss}
@@ -651,20 +652,20 @@ Pozornie nic się nie zmieniło, jednak teraz gradient jest przeprowadzany przez
 	\label{sztuczka}
 \end{figure}
 \section{Zastosowania}
-Wariacyjny autoenkoder jako pochodna tradycyjnego modelu może zostać zastosowany do takich samych zadań, jak detekcja anomalii, odszumianie oraz kompresja danych. Głównym jednak powodem, dla którego używa się modelu VAE jest jego możliwość generowania danych. Mając już znaną dystrybucję, z której są losowane zmienne ukryte, aby generować nowe dane, podobne do oryginalnych ze zbioru danych. Rysunek \ref{fig:vaelatent} przestawia zmienne ukryte wygenerowane przez enkoder dla obrazków z MNIST. Porównując obrazek \ref{fig:vaelatent} z \ref{fig:latentspaceae} jasno widać, że model VAE rozwiązał omówione problemy generacyjne tradycyjnego autoenkodera. Przestrzeń jest kompletna i ciągła. Punkty dystrybucji znajdujące się blisko siebie generują podobne wyniki, co widać na obrazku \ref{fig:vaelatentgen}. Tak jak chcieliśmy, zmienne ukryte są rozłożone względem rozkładu normalnego. 
+Wariacyjny autoenkoder jako pochodna tradycyjnego modelu może zostać zastosowany do takich samych zadań, jak detekcja anomalii, odszumianie oraz kompresja danych. Głównym jednak powodem, dla którego używa się modelu VAE jest jego możliwość generowania danych. Mając już znaną dystrybucję, z której są losowane zmienne ukryte, aby generować nowe dane, podobne do oryginalnych ze zbioru danych. Rysunek \ref{fig:vaelatent} przestawia zmienne ukryte wygenerowane przez enkoder dla obrazków z MNIST. Porównując obrazek \ref{fig:vaelatent} z \ref{fig:latentspaceae} widać, że model VAE rozwiązał omówione problemy generacyjne tradycyjnego autoenkodera. Przestrzeń jest kompletna i ciągła oraz nie zawiera przestrzeni niezdefiniowanych. Punkty dystrybucji znajdujące się blisko siebie generują podobne wyniki, co widać na obrazku \ref{fig:vaelatentgen}. Tak jak zostało założone, zmienne ukryte są rozłożone względem rozkładu normalnego. 
 
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=12cm]{vaelatentspace.png}
-	\caption{Przestrzeń zakodowanych zmiennych modelem VAE}
+	\caption{Przestrzeń zakodowanych zmiennych VAE}
 	\label{fig:vaelatent}
 \end{figure}
-Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zbioru danych MNIST, a prawa strona pokazuje dane wygenerowane przez wytrenowany model. Generując dane, nie potrzeba już enkodera. Na wejście dekoder dostaje losowo wybrane punkty z dystrybucji, którą wybiera się podczas budowy modelu. W naszym przypadku jest to rozkład normalny.
+Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zbioru danych MNIST, a prawa strona pokazuje dane wygenerowane przez wytrenowany model. Generując dane, nie potrzeba już enkodera. Na wejście dekoder dostaje losowo wybrane punkty z dystrybucji, którą wybiera się podczas budowy modelu. W tym przypadku jest to rozkład normalny.
 \newpage
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=14cm]{vaelatentgen.png}
-	\caption{Wygenerowane obrazy modelem VAE na przestrzeni zmiennych}
+	\caption{Wygenerowane obrazy przez VAE na przestrzeni zmiennych}
 	\label{fig:vaelatentgen}
 \end{figure}
 
@@ -678,7 +679,7 @@ Obrazek \ref{fig:vaegeneracja} po lewej stronie pokazuje przykładowe dane ze zb
 \subsection{Generacja ludzkich twarzy}
 Zbiór danych \textit{CelebFaces Attributes Dataset (CelebA)} jest zbiorem ponad 200 000 twarzy celebrytów opisanych przez 40 atrybutów \cite{celeba}. Wymiary każdego obrazu to 178 na 218 pikseli. Na podstawie zbioru zostaną zaprezentowane możliwości generacyjne modelu VAE. Obrazom przeznaczonym do treningu sieci, zostały obcięte brzegi, zostawiając obraz o wymiarach 120 na 120 pikseli, co poprawia wydajność modelu poprzez zostawienie tylko twarzy celebtyry bez zbędnych informacji z tła.
 
-Architekturą wykorzystywaną w tym problemie jest konwolucyjny wariacyjny autoenkoder. Sieci konwolucyjne, wchodzące w skład enkodera, wyjątkowo dobrze nadają się do pracy z obrazami \cite{convvae}. Obrazy zostały zakodowane do rozkładu o wymiarze 1024. Na rysunku \ref{fig:convvae} kolorem żółtym zostały oznaczone warstwy konwolucyjne, a ich poszczególne parametry i funkcje aktywacji zostały opisane pod nimi. W zwężeniu warstwa \textit{flatten} pozwala przejść z trójwymiarowych warstw na jeden wymiar, co umożliwia spłaszczenie obrazów do ukrytych rozkładów. Następnie po operacji losowania w warstwie $z$, wartości przechodzą do warstwy głębokiej mającej taki sam wymiar jak warstwa \textit{flatten}. \textit{Reshape} zamienia z powrotem wartości jednowymiarowe na trójwymiar, przez co warstwy dekonwolucyjne, oznaczone na zielono, mogą odkodować obraz.
+Architekturą wykorzystywaną w tym problemie jest konwolucyjny wariacyjny autoenkoder (\textit{CVAE}). Sieci konwolucyjne, wchodzące w skład enkodera, wyjątkowo dobrze nadają się do pracy z obrazami \cite{convvae}. Obrazy zostały zakodowane do rozkładu o wymiarze 1024. Na rysunku \ref{fig:convvae} kolorem żółtym zostały oznaczone warstwy konwolucyjne, a ich poszczególne parametry i funkcje aktywacji zostały opisane pod nimi. W zwężeniu warstwa \textit{flatten} pozwala przejść z trójwymiarowych warstw na jeden wymiar, co umożliwia spłaszczenie obrazów do ukrytych rozkładów. Następnie po operacji losowania w warstwie $z$, wartości przechodzą do warstwy głębokiej mającej taki sam wymiar jak warstwa \textit{flatten}. \textit{Reshape} zamienia z powrotem wartości jednowymiarowe na trójwymiar, przez co warstwy dekonwolucyjne, oznaczone na zielono, mogą odkodować obraz.
 
 \begin{figure}[h!]
 	\centering\includegraphics[width=\linewidth]{my_arch.pdf}
@@ -741,9 +742,9 @@ Następnie wczytany zbiór danych MNIST, jest dzielony na część przeznaczoną
 	\label{code:dataset}
 \end{code}
 \subsubsection{Autoenkoder}
- W listingu \ref{code:createae} tworzony jest enkodera z dwiema warstwami ukrytymi, z czego pierwsza posiada 500 neuronów, a druga 120. Obraz jest kompresowany do kodu o długości 2. Architektura dekodera jest odbiciem lustrzanym enkodera. Funkcje aktywacji warstw ukrytych to ReLU \textit{Rectified Linear Unit}, które nie dość, że umożliwiają lepszą naukę sieci, to sprawiają, że trening zajmuje mniej czasu \cite{relu}. Użyta funkcja liniowa w warstwie kodu, nie ogranicza wartości, jakie poszczególne jego elementy mogą przyjąć. Funkcja sigmoidalna na wyjściu spłaszcza wyjście neuronu do przedziału [0, 1], czyli takiego samego, w jakim występują nasze dane.\\
+ W listingu \ref{code:createae} tworzony jest enkodera z dwiema warstwami ukrytymi, z czego pierwsza posiada 500 neuronów, a druga 120. Obraz jest kompresowany do kodu o długości 2. Architektura dekodera jest odbiciem lustrzanym enkodera. Funkcje aktywacji warstw ukrytych to ReLU \textit{Rectified Linear Unit}, które nie dość, że umożliwiają lepszą naukę sieci, to sprawiają, że trening zajmuje mniej czasu \cite{relu}. Użyta funkcja liniowa w warstwie kodu, nie ogranicza wartości, jakie poszczególne jego elementy mogą przyjąć. Funkcja sigmoidalna na wyjściu spłaszcza wyjście neuronu do przedziału [0, 1], czyli takiego samego, w jakim występują dane.\\
 
-Pierwsza warstwa wejściowa jest przeznaczona, aby przyjmować dane o wymiarze takim jak obrazy. Następnie warstwa \textit{Flatten} zamienia dwuwymiarowe wejście na jednowymiarowe. Kolejne warstwy łączą się w normalny sposób pomiędzy sobą. Ostatnia warstwa \textit{Reshape} dokonuje odwrotnej operacji co \textit{Flatten}, zamieniając jednowymiarowe wartości na macierz, która ma takie same wymiary co dane wejściowe, co umożliwia porównanie wyniku modelu do wejścia. Do stworzenia całego autoenkoder,a używa się klasy \textit{Model}, podając pierwszą oraz ostatnią warstwę. W ten sposób wszystkie parametry są trenowane na raz. Stworzenie osobno enkodera nie jest problemem, ponieważ posiada on tą samą warstwę wejściową co cały model. Dekoder jest nieco problematyczny, ponieważ należy stworzyć jego własną warstwę wejściową, a następnie połączyć z nią warstwy modelu, tak aby korzystał z wytrenowanych parametrów. 
+Pierwsza warstwa jest przeznaczona, aby przyjmować dane o wymiarze takim jak obrazy. Następnie warstwa \textit{Flatten} zamienia dwuwymiarowe wejście na jednowymiarowe. Kolejne warstwy łączą się w normalny sposób pomiędzy sobą. Ostatnia warstwa \textit{Reshape} dokonuje odwrotnej operacji co \textit{Flatten}, zamieniając jednowymiarowe wartości na macierz, która ma takie same wymiary co dane wejściowe, co umożliwia porównanie wyniku modelu do wejścia. Do stworzenia całego autoenkoder,a używa się klasy \textit{Model}, podając pierwszą oraz ostatnią warstwę. W ten sposób wszystkie parametry są trenowane na raz. Stworzenie osobno enkodera nie jest problemem, ponieważ posiada on tą samą warstwę wejściową co cały model. Dekoder jest bardziej problematyczny, ponieważ należy stworzyć jego własną warstwę wejściową, a następnie połączyć z nią warstwy modelu, tak aby korzystał z wytrenowanych parametrów. 
 \begin{code}[h!]
 	\centering
 	\includegraphics[width=\linewidth]{modelae.pdf}
@@ -751,7 +752,7 @@ Pierwsza warstwa wejściowa jest przeznaczona, aby przyjmować dane o wymiarze t
 	\label{code:createae}
 \end{code}
 
-Zanim trening sieci się rozpocznie, trzeba sprecyzować funkcję straty oraz optymalizator. Funkcja użyta w przykładzie \ref{code:trainae} to błąd średnio-kwadratowy, który jest dobrym wyborem w przypadku porównywania obrazów. Optymalizator to algorytm znajdowania wag sieci, dla których funkcja straty jest jak najmniejsza, a co za tym idzie model działa jak najlepiej. Wybraną metodą jest algorytm \textit{adam}, który jest pochodną stochastycznego gradientu. Obliczenia okupują mniej pamięci, jest prosty obliczeniowo oraz znajduje optymalne rozwiązanie szybciej niż tradycyjne podejście \cite{adam}. Jednym z jej twórców jest Diedrik Kingma, który również jako pierwszy zaproponował model wariacyjnego autoenkodera. Aby nie przetrenować modelu, dodaje się zbiór walidacyjny, który przejmuje 20\% danych treningowych. Walidacja służy do sprawdzenia na innych danych niż testowe i treningowe, czy model się nie przetrenował. W momencie, kiedy błąd na zbiorze walidacyjnym będzie rosnąć przez 3 epoki zamiast maleć, callback \textit{EarlyStopping} przerwie trening wag i przywróci wagi, dla których wynik był najlepszy.
+Zanim trening sieci się rozpocznie, trzeba sprecyzować funkcję straty oraz optymalizator. Funkcja użyta w przykładzie \ref{code:trainae} to błąd średnio-kwadratowy, który jest dobrym wyborem w przypadku porównywania obrazów. Optymalizator to algorytm znajdowania wag parametrów, dla których funkcja straty jest jak najmniejsza, a co za tym idzie model działa jak najlepiej. Wybraną metodą jest algorytm \textit{adam}, który jest pochodną stochastycznego gradientu. Obliczenia okupują mniej pamięci, jest prosty obliczeniowo oraz znajduje optymalne rozwiązanie szybciej niż tradycyjne podejście \cite{adam}. Jednym z jej twórców jest Diedrik Kingma, który również jako pierwszy zaproponował model wariacyjnego autoenkodera. Aby nie przetrenować modelu, dodaje się zbiór walidacyjny, który przejmuje 20\% danych treningowych. Walidacja służy do sprawdzenia na innych danych niż testowe i treningowe, czy model się nie przetrenował. W momencie, kiedy błąd na zbiorze walidacyjnym będzie rosnąć przez 3 epoki zamiast maleć, callback \textit{EarlyStopping} przerwie trening i przywróci wagi do tych, dla których wynik był najlepszy.
 \begin{code}[h!]
 	\centering
 	\includegraphics[width=\linewidth]{trainae.pdf}
@@ -759,11 +760,11 @@ Zanim trening sieci się rozpocznie, trzeba sprecyzować funkcję straty oraz op
 	\label{code:trainae}
 \end{code}
 
-Po treningu modele są już gotowe go użytkowania. Aby dokonać przy ich pomocy obliczeń, należy wykonać funkcję \textit{predict}, do której trzeba podać odpowiednich wymiarów macierz. 
+Po treningu modele są już gotowe go używania. Aby dokonać przy ich pomocy obliczeń, należy wykonać metodę \textit{predict}, do której trzeba podać odpowiednich wymiarów macierz. 
 \subsubsection{Wariacyjny autoenkoder}
 Przygotowanie zbioru danych dla wariacyjnego autoenkodera nie różni się w żaden sposób od pokazanego w \ref{code:dataset}. 
 
-Implementacja modelu VAE jest bardziej skomplikowana niż AE. Bierze się to jego budowy, która wymaga rozłączenia jednej warstwy na dwie niezależne przyłączone do tej samej, co widać na obrazku \ref{fig:vaenetwork} oraz implementacji własnej funkcji straty. Warstwy reprezentujące średnią i odchylenie standardowe są połączone z ostatnią warstwą ukrytą. W listingu \ref{code:createvae} warstwę odchyleń standardowych traktuje się jako ich logarytm, ponieważ jego wartość nie może być ujemna. Kiedy potrzeba użyć zmiennych, wystarczy dokonać na nich operacji \textit{exp}. Funkcja \textit{probka} dokonuje losowania z dystrybucji na nauczonych parametrach, stosując opisaną wcześniej metodę reparametryzacyjną. Zmienna \textit{eps} przechowuje wartości losowane z rozkładu normalnego i ich rozmiar jest równy ilości zmiennych ukrytych i wielkości partii danych (\textit{batch size}). Na etapie tworzenia architektury modelu nie wiadomo o wielkości batch-a, więc używając metody \textit{shape} można ją dynamicznie zmieniać w zależności od przekazanych parametrów. Dostępna w paczce Keras klasa \textit{Lambda} pozwala wywołać wskazaną funkcję na wartościach neuronów. Warstwa jest łączona z obiema wcześniejszymi warstwami na raz. Implementacja dekodera jest identyczna jak dla tradycyjnego autoenkodera pokazanego w \ref{code:createae}. Funkcja straty modelu VAE nie jest możliwa do automatycznego policzenia, tak jak zostało to pokazane w AE. Zmienna \textit{z$\_$odkodowane} przechowuje obraz odkodowany ze zmiennych ukrytych, który będzie porównywany z tym przekazanym na wejście sieci.
+Implementacja modelu VAE jest bardziej skomplikowana niż AE. Bierze się to jego budowy, która wymaga rozłączenia jednej warstwy na dwie niezależne, przyłączone do tej samej, co widać na obrazku \ref{fig:vaenetwork} oraz implementacji własnej funkcji straty. Warstwy reprezentujące średnią i odchylenie standardowe są połączone z ostatnią warstwą ukrytą. W listingu \ref{code:createvae} warstwę odchyleń standardowych traktuje się jako ich logarytm, ponieważ jego wartość nie może być ujemna. Kiedy potrzeba użyć zmiennych, wystarczy dokonać na nich operacji \textit{exp}. Funkcja \textit{probka} dokonuje losowania z dystrybucji na nauczonych parametrach, stosując opisaną wcześniej metodę reparametryzacyjną. Zmienna \textit{eps} przechowuje wartości losowane z rozkładu normalnego i ich rozmiar jest równy ilości zmiennych ukrytych i wielkości partii danych (\textit{batch size}). Na etapie tworzenia architektury modelu nie wiadomo o wielkości batch-a, więc używając metody \textit{shape} można ją dynamicznie zmieniać w zależności od przekazanych parametrów. Dostępna w paczce Keras klasa \textit{Lambda} pozwala wywołać wskazaną funkcję na wartościach neuronów. Warstwa jest łączona z obiema wcześniejszymi warstwami na raz. Implementacja dekodera jest identyczna jak dla tradycyjnego autoenkodera pokazanego w \ref{code:createae}. Funkcja straty modelu VAE nie jest możliwa do automatycznego policzenia, tak jak zostało to pokazane w AE. Zmienna \textit{z$\_$odkodowane} przechowuje obraz odkodowany ze zmiennych ukrytych, który będzie porównywany z tym przekazanym na wejście sieci.
 
 \begin{code}[h!]
 	\centering
